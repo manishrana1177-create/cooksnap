@@ -84,12 +84,8 @@ const sampleRecipes = [
 export default function HomeView() {
   const {
     setCurrentView,
-    selectedCuisine,
-    setSelectedCuisine,
     pantryItems,
     favorites,
-    dietFilter,
-    setDietFilter,
   } = useAppStore()
 
   const [showMenu, setShowMenu] = useState(false)
@@ -210,66 +206,6 @@ export default function HomeView() {
                 <action.icon className="w-5 h-5" />
               </div>
               <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">{action.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Diet Preference Pills ── */}
-      <div className="px-4 mt-5">
-        <h2 className="text-sm font-bold text-gray-800 mb-2">Diet Preference</h2>
-        <div className="flex gap-2">
-          {[
-            { id: 'all' as const, label: '🍽️ All', activeClass: 'bg-orange-500 text-white shadow-md shadow-orange-500/20' },
-            { id: 'veg' as const, label: '🟢 Veg', activeClass: 'bg-green-500 text-white shadow-md shadow-green-500/20' },
-            { id: 'nonveg' as const, label: '🔴 Non-Veg', activeClass: 'bg-red-500 text-white shadow-md shadow-red-500/20' },
-          ].map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => setDietFilter(opt.id)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                dietFilter === opt.id
-                  ? opt.activeClass
-                  : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Cuisine Selector ── */}
-      <div className="px-4 mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-bold text-gray-800">Cuisine Style</h2>
-          <span className="text-[10px] text-orange-500 font-semibold">Choose your flavor</span>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {[
-            { id: 'global', label: '🌍 Global' },
-            { id: 'indian', label: '🇮🇳 Indian' },
-            { id: 'italian', label: '🇮🇹 Italian' },
-            { id: 'chinese', label: '🇨🇳 Chinese' },
-            { id: 'mexican', label: '🇲🇽 Mexican' },
-            { id: 'japanese', label: '🇯🇵 Japanese' },
-            { id: 'thai', label: '🇹🇭 Thai' },
-            { id: 'mediterranean', label: '🫒 Mediterranean' },
-            { id: 'american', label: '🇺🇸 American' },
-            { id: 'korean', label: '🇰🇷 Korean' },
-            { id: 'french', label: '🇫🇷 French' },
-            { id: 'middle-eastern', label: '🧆 Middle Eastern' },
-          ].map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setSelectedCuisine(c.id)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                selectedCuisine === c.id
-                  ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/25'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300'
-              }`}
-            >
-              {c.label}
             </button>
           ))}
         </div>
