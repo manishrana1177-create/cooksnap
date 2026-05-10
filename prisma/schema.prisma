@@ -30,3 +30,23 @@ model FavoriteRecipe {
   imageUrl      String   @default("")
   createdAt     DateTime @default(now())
 }
+
+model Recipe {
+  id                  String   @id @default(cuid())
+  title               String
+  cuisine             String   @default("global")
+  cookTime            String   @default("")
+  prepTime            String   @default("")
+  servings            Int      @default(2)
+  difficulty          String   @default("easy")
+  isVegetarian        Boolean  @default(false)
+  ingredients         String   // JSON string of ingredients with quantities
+  ingredientNames     String   // JSON string of just ingredient names (for matching)
+  steps               String   // JSON string of steps array
+  tags                String   @default("[]") // JSON string of tags array
+  imagePrompt         String   @default("")
+  category            String   @default("main") // main, breakfast, snack, dessert, drink, soup, salad, side, appetizer
+  popularity          Int      @default(0) // 0-100 popularity score
+  isAIGenerated       Boolean  @default(false)
+  createdAt           DateTime @default(now())
+}

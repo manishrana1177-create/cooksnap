@@ -198,7 +198,33 @@ export default function ConfirmView() {
         ? pantryItems.map((p) => p.name)
         : []
 
-      // Use AbortController with 120s timeout for AI generation
+      // FIRST: Search database for matching recipes (instant)
+      const searchResponse = await fetch('/api/recipes/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ingredients: [...confirmedIngredients, ...pantryNames],
+          cuisine: selectedCuisine !== 'global' ? selectedCuisine : undefined,
+          limit: 20,
+        }),
+      })
+
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json()
+        if (searchData.recipes && searchData.recipes.length >= 3) {
+          // Found enough database matches — use them
+          setRecipes(searchData.recipes)
+          toast({
+            title: 'Recipes found!',
+            description: `${searchData.recipes.length} recipes from our database`,
+          })
+          setCurrentView('results')
+          setIsGenerating(false)
+          return
+        }
+      }
+
+      // FALLBACK: Use AI to generate recipes if database doesn't have enough
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 120000)
 
@@ -488,7 +514,7 @@ export default function ConfirmView() {
             {isGenerating ? (
               <>
                 <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Generating Recipes...
+                Finding Recipes...
               </>
             ) : (
               <>
