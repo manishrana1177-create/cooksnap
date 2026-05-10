@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ZAI from 'z-ai-web-dev-sdk'
 
-export const maxDuration = 120 // Allow up to 120 seconds for AI generation
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -33,9 +31,9 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'system',
-          content: `You are a creative chef AI that generates recipes based on available ingredients. Generate 4 delicious recipes using the provided ingredients ${cuisineContext}. Include a mix of vegetarian and non-vegetarian recipes.
+          content: `You are a creative chef AI that generates recipes based on available ingredients. Generate 5-6 delicious recipes using the provided ingredients ${cuisineContext}. Include a mix of vegetarian and non-vegetarian recipes.
 
-Return ONLY a valid JSON array of recipe objects with this exact format, no other text, no markdown, no code fences:
+Return ONLY a valid JSON array of recipe objects with this exact format, no other text, no markdown:
 [{
   "title": "Recipe Name",
   "cuisine": "cuisine type (e.g. Indian, Italian, Chinese, etc.)",
@@ -59,8 +57,7 @@ Rules:
 - isVegetarian must be true if the recipe contains NO meat, fish, or eggs, false otherwise
 - Tags should include: difficulty level, meal type (breakfast/lunch/dinner/snack), dietary info (vegetarian/non-vegetarian/vegan), and cuisine type
 - Make the imagePrompt a vivid, professional food photography description
-- Generate a variety of recipes with different cuisines and difficulty levels
-- IMPORTANT: Return ONLY the JSON array, no markdown code fences, no extra text before or after`
+- Generate a variety of recipes with different cuisines and difficulty levels`
         },
         {
           role: 'user',
@@ -73,15 +70,8 @@ Rules:
 
     let recipes
     try {
-      // Clean the response - remove markdown code fences if present
-      let cleanedText = responseText.trim()
-      // Remove ```json ... ``` wrapper if AI added it
-      if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '')
-      }
-
       // Try to extract JSON array from the response
-      const jsonMatch = cleanedText.match(/\[[\s\S]*\]/)
+      const jsonMatch = responseText.match(/\[[\s\S]*\]/)
       if (jsonMatch) {
         recipes = JSON.parse(jsonMatch[0])
       } else {

@@ -1,25 +1,154 @@
 'use client'
 
 import { useAppStore, type Recipe } from '@/lib/store'
-import { Clock, Users, Flame, Leaf, Drumstick, Compass, Sparkles, ChefHat, RefreshCw, Search, ShoppingCart, Filter } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Flame, Leaf, Drumstick, Compass, Sparkles, ChefHat, RefreshCw, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
 
-const CUISINES = [
-  { id: 'all', label: '🍽️ All', emoji: '🍽️' },
-  { id: 'North Indian', label: '🫓 North Indian', emoji: '🫓' },
-  { id: 'South Indian', label: '🥘 South Indian', emoji: '🥘' },
-  { id: 'East Indian', label: '🍲 East Indian', emoji: '🍲' },
-  { id: 'West Indian', label: '🥗 West Indian', emoji: '🥗' },
-  { id: 'Indo-Chinese', label: '🥡 Indo-Chinese', emoji: '🥡' },
-  { id: 'Street Food', label: '🌮 Street Food', emoji: '🌮' },
-  { id: 'Fast Food & Cafe', label: '🍔 Fast Food', emoji: '🍔' },
-  { id: 'Healthy & Fitness', label: '💪 Healthy', emoji: '💪' },
-  { id: 'Vegetarian', label: '🌿 Veg', emoji: '🌿' },
-  { id: 'Non-Vegetarian', label: '🍗 Non-Veg', emoji: '🍗' },
+const sampleExploreRecipes: Recipe[] = [
+  {
+    id: 'explore-sample-1',
+    title: 'Masala Dosa',
+    cuisine: 'Indian',
+    cookTime: '15 min',
+    prepTime: '20 min',
+    servings: 4,
+    difficulty: 'Medium',
+    isVegetarian: true,
+    ingredients: [
+      '2 cups rice batter',
+      '1 cup urad dal batter',
+      '2 potatoes, boiled & mashed',
+      '1 onion, sliced',
+      '1 tsp mustard seeds',
+      '1 tsp chana dal',
+      '8-10 curry leaves',
+      '2 green chillies, chopped',
+      '1/2 tsp turmeric',
+      'Oil for cooking',
+      'Salt to taste',
+    ],
+    steps: [
+      'Mix rice and urad dal batter together with salt. Let it ferment for 8 hours or overnight.',
+      'For the filling, heat oil in a pan. Add mustard seeds, chana dal, and curry leaves. Let them splutter.',
+      'Add sliced onions and green chillies. Sauté until onions are translucent and slightly golden.',
+      'Add turmeric and mashed potatoes. Mix well, season with salt, and cook for 2-3 minutes. Set aside.',
+      'Heat a flat tawa or griddle. Pour a ladleful of batter and spread it thin in a circular motion from center outward.',
+      'Drizzle a little oil around the edges and on top. Cook until the bottom is golden and crispy.',
+      'Place a spoonful of potato filling in the center. Fold the dosa over and serve hot with coconut chutney and sambar.',
+    ],
+    tags: ['South Indian', 'Breakfast', 'Crispy', 'Classic'],
+    imagePrompt: 'crispy golden masala dosa with potato filling and coconut chutney on the side',
+  },
+  {
+    id: 'explore-sample-2',
+    title: 'Butter Chicken',
+    cuisine: 'Indian',
+    cookTime: '30 min',
+    prepTime: '15 min',
+    servings: 4,
+    difficulty: 'Medium',
+    isVegetarian: false,
+    ingredients: [
+      '500g chicken, boneless',
+      '1 cup yogurt',
+      '2 tbsp butter',
+      '1 tbsp oil',
+      '1 onion, chopped',
+      '2 tomatoes, pureed',
+      '1 tbsp ginger-garlic paste',
+      '1 tsp garam masala',
+      '1 tsp red chilli powder',
+      '1/2 cup cream',
+      '1 tsp kasuri methi',
+      'Salt to taste',
+      'Fresh coriander for garnish',
+    ],
+    steps: [
+      'Marinate chicken in yogurt, salt, and red chilli powder for at least 30 minutes.',
+      'Grill or pan-sear the marinated chicken until slightly charred. Set aside.',
+      'In the same pan, melt butter with oil. Add onions and cook until golden brown.',
+      'Add ginger-garlic paste and cook for 1 minute. Add tomato puree and cook until oil separates.',
+      'Add garam masala, kasuri methi, and cream. Stir well and simmer for 2 minutes.',
+      'Add the grilled chicken pieces. Simmer on low heat for 10 minutes until chicken is cooked through.',
+      'Garnish with fresh coriander and a drizzle of cream. Serve with naan or steamed rice.',
+    ],
+    tags: ['North Indian', 'Rich & Creamy', 'Restaurant Style', 'Popular'],
+    imagePrompt: 'rich creamy orange butter chicken curry in a bowl with fresh naan bread',
+  },
+  {
+    id: 'explore-sample-3',
+    title: 'Vegetable Stir Fry',
+    cuisine: 'Chinese',
+    cookTime: '10 min',
+    prepTime: '10 min',
+    servings: 3,
+    difficulty: 'Easy',
+    isVegetarian: true,
+    ingredients: [
+      '1 bell pepper, sliced',
+      '1 carrot, julienned',
+      '1 cup broccoli florets',
+      '1/2 cup snap peas',
+      '2 cloves garlic, minced',
+      '1 inch ginger, julienned',
+      '2 tbsp soy sauce',
+      '1 tbsp vinegar',
+      '1 tsp sesame oil',
+      '1 tbsp cornstarch',
+      '2 tbsp vegetable oil',
+      'Spring onions for garnish',
+    ],
+    steps: [
+      'Mix soy sauce, vinegar, sesame oil, and cornstarch in a small bowl to make the sauce. Set aside.',
+      'Heat vegetable oil in a wok over high heat until smoking hot.',
+      'Add garlic and ginger. Stir fry for 15 seconds until fragrant — do not burn.',
+      'Add carrots and broccoli first (they take longer). Stir fry for 2 minutes on high heat.',
+      'Add bell pepper and snap peas. Stir fry for another 1-2 minutes, keeping vegetables crisp.',
+      'Pour in the sauce mixture. Toss everything quickly so the sauce coats all vegetables evenly.',
+      'Garnish with spring onions and serve immediately with steamed rice or noodles.',
+    ],
+    tags: ['Quick & Easy', 'Healthy', 'Weeknight Dinner', 'Veggie Packed'],
+    imagePrompt: 'colorful vegetable stir fry with broccoli bell peppers and snap peas on a plate',
+  },
+  {
+    id: 'explore-sample-4',
+    title: 'Rajma Chawal',
+    cuisine: 'Indian',
+    cookTime: '40 min',
+    prepTime: '10 min',
+    servings: 4,
+    difficulty: 'Easy',
+    isVegetarian: true,
+    ingredients: [
+      '1 cup kidney beans (rajma), soaked overnight',
+      '2 onions, chopped',
+      '3 tomatoes, pureed',
+      '1 tbsp ginger-garlic paste',
+      '1 tsp cumin seeds',
+      '1 tsp coriander powder',
+      '1 tsp garam masala',
+      '1/2 tsp turmeric',
+      '1 tsp red chilli powder',
+      '2 tbsp oil',
+      'Fresh coriander for garnish',
+      'Salt to taste',
+    ],
+    steps: [
+      'Pressure cook soaked rajma with salt and enough water until soft and tender (about 4-5 whistles).',
+      'Heat oil in a pan. Add cumin seeds and let them splutter. Add onions and cook until golden.',
+      'Add ginger-garlic paste and cook for 1 minute. Add tomato puree and cook until oil separates.',
+      'Add turmeric, coriander powder, red chilli powder, and salt. Cook for 2 minutes.',
+      'Add the boiled rajma along with its cooking water. Simmer for 15-20 minutes on medium heat.',
+      'Mash some beans with the back of a spoon to thicken the gravy. Add garam masala and mix.',
+      'Garnish with fresh coriander. Serve hot with steamed basmati rice and a side of onion salad.',
+    ],
+    tags: ['Comfort Food', 'North Indian', 'Protein Rich', 'Home Style'],
+    imagePrompt: 'thick rich rajma curry served over steamed basmati rice with fresh coriander garnish',
+  },
 ]
 
 export default function ExploreView() {
@@ -33,12 +162,9 @@ export default function ExploreView() {
   } = useAppStore()
 
   const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedCuisine, setSelectedCuisine] = useState('all')
-  const [matchInfo, setMatchInfo] = useState<{ source: string; matchedCount: number } | null>(null)
-  const [cuisineCounts, setCuisineCounts] = useState<Record<string, number>>({})
-  const hasLoaded = useRef(false)
-  const abortRef = useRef<AbortController | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [hasLoadedPantry, setHasLoadedPantry] = useState(false)
 
   // Load pantry items on mount
   useEffect(() => {
@@ -51,111 +177,65 @@ export default function ExploreView() {
         }
       } catch (e) {
         console.error(e)
+      } finally {
+        setHasLoadedPantry(true)
       }
     }
     loadPantry()
   }, [setPantryItems])
 
-  // Fetch cuisine counts for badges
+  // Auto-generate recipes when pantry has items
   useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const res = await fetch('/api/seed/recipes')
-        if (res.ok) {
-          const data = await res.json()
-          const counts: Record<string, number> = {}
-          if (data.byCuisine) {
-            data.byCuisine.forEach((c: { cuisine: string; count: number }) => {
-              counts[c.cuisine] = c.count
-            })
-          }
-          setCuisineCounts(counts)
-        }
-      } catch (e) {
-        console.error(e)
-      }
+    if (hasLoadedPantry && pantryItems.length > 0 && recipes.length === 0 && !isGenerating) {
+      generateRecipes()
+    } else if (hasLoadedPantry && pantryItems.length === 0) {
+      setRecipes(sampleExploreRecipes)
     }
-    fetchCounts()
-  }, [recipes])
+  }, [hasLoadedPantry, pantryItems.length])
 
-  // Search recipes from database whenever pantry or cuisine changes
-  useEffect(() => {
-    if (hasLoaded.current) return
-    hasLoaded.current = true
-    searchRecipes()
-  }, [pantryItems])
-
-  // Re-search when cuisine changes
-  useEffect(() => {
-    if (hasLoaded.current) {
-      searchRecipes()
+  const generateRecipes = useCallback(async () => {
+    if (pantryItems.length === 0) {
+      setRecipes(sampleExploreRecipes)
+      return
     }
-  }, [selectedCuisine])
 
-  const searchRecipes = useCallback(async () => {
-    // Cancel any in-flight request
-    if (abortRef.current) {
-      abortRef.current.abort()
-    }
-    const controller = new AbortController()
-    abortRef.current = controller
-
-    setIsLoading(true)
+    setIsGenerating(true)
     try {
       const ingredientNames = pantryItems.map((p) => p.name)
-      const cuisineFilter = selectedCuisine !== 'all' ? selectedCuisine : undefined
-
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
-
-      const response = await fetch('/api/recipes/search', {
+      const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ingredients: ingredientNames,
-          cuisine: cuisineFilter,
-          limit: 30,
+          cuisine: 'global',
         }),
-        signal: controller.signal,
       })
 
-      clearTimeout(timeoutId)
-
       if (!response.ok) {
-        throw new Error('Search failed')
+        throw new Error('Failed to generate recipes')
       }
 
       const data = await response.json()
       if (data.recipes && data.recipes.length > 0) {
         setRecipes(data.recipes)
-        setMatchInfo({ source: data.source, matchedCount: data.total || 0 })
       } else {
-        setRecipes([])
-        setMatchInfo(null)
+        setRecipes(sampleExploreRecipes)
       }
-    } catch (error: any) {
-      if (error?.name === 'AbortError') return // cancelled, ignore
+    } catch (error) {
       console.error(error)
-      setRecipes([])
+      setRecipes(sampleExploreRecipes)
+      toast({ title: 'Using sample recipes', description: 'Could not generate custom recipes' })
     } finally {
-      setIsLoading(false)
+      setIsGenerating(false)
     }
-  }, [pantryItems, selectedCuisine])
-
-  // Refresh - re-search with current pantry & cuisine
-  const handleRefresh = () => {
-    searchRecipes()
-  }
+  }, [pantryItems])
 
   const openRecipe = (recipe: Recipe) => {
     setSelectedRecipe(recipe)
     setCurrentView('detail')
   }
 
-  const handleCuisineChange = (cuisineId: string) => {
-    setSelectedCuisine(cuisineId)
-  }
-
-  // Generate images for recipes
+  // Generate images for recipes (same pattern as ResultsView)
   useEffect(() => {
     const generateImages = async () => {
       for (const recipe of recipes) {
@@ -176,7 +256,7 @@ export default function ExploreView() {
             }
           }
         } catch (e) {
-          console.error('Image error:', e)
+          console.error('Image generation error for', recipe.title, e)
         }
       }
     }
@@ -199,40 +279,22 @@ export default function ExploreView() {
               <p className="text-[10px] text-gray-400">
                 {pantryItems.length > 0
                   ? `Based on your ${pantryItems.length} pantry items`
-                  : 'Discover delicious Indian recipes'}
+                  : 'Discover delicious recipes'}
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-orange-200 text-orange-600 h-8"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
-
-        {/* Cuisine filter tabs */}
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {CUISINES.map((cuisine) => (
-            <button
-              key={cuisine.id}
-              onClick={() => handleCuisineChange(cuisine.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
-                selectedCuisine === cuisine.id
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600'
-              }`}
+          {pantryItems.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-orange-200 text-orange-600 h-8"
+              onClick={generateRecipes}
+              disabled={isGenerating}
             >
-              {cuisine.label}
-              {cuisineCounts[cuisine.id] && selectedCuisine !== cuisine.id && (
-                <span className="ml-1 text-[10px] opacity-60">({cuisineCounts[cuisine.id]})</span>
-              )}
-            </button>
-          ))}
+              <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isGenerating ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          )}
         </div>
 
         {/* Pantry summary bar */}
@@ -259,25 +321,23 @@ export default function ExploreView() {
       {/* Content */}
       <div className="flex-1 px-4 py-4 space-y-4 pb-24">
         {/* Loading state */}
-        {isLoading && (
+        {isGenerating && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4">
               <ChefHat className="w-8 h-8 text-orange-500 animate-pulse" />
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-1">Finding recipes for you...</h3>
-            <p className="text-sm text-gray-400 mb-4">
-              {selectedCuisine !== 'all' ? `Searching ${selectedCuisine} recipes` : 'Searching our recipe database'}
-            </p>
+            <p className="text-sm text-gray-400 mb-4">Using your pantry ingredients</p>
             <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
         {/* Empty pantry prompt */}
-        {!isLoading && pantryItems.length === 0 && (
+        {!isGenerating && pantryItems.length === 0 && (
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100/50 mb-4">
             <div className="flex items-start gap-3">
               <div className="w-11 h-11 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <ShoppingCart className="w-5 h-5 text-orange-500" />
+                <Search className="w-5 h-5 text-orange-500" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-gray-800 mb-1">Add items to your pantry</h3>
@@ -295,18 +355,8 @@ export default function ExploreView() {
           </div>
         )}
 
-        {/* Match info */}
-        {!isLoading && matchInfo && recipes.length > 0 && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Sparkles className="w-3 h-3 text-orange-500" />
-            {matchInfo.source === 'matched' && `Found ${matchInfo.matchedCount} recipes matching your ingredients`}
-            {matchInfo.source === 'mixed' && `Some matches found + popular recipes`}
-            {matchInfo.source === 'popular' && `Popular ${selectedCuisine !== 'all' ? selectedCuisine : ''} recipes — add more pantry items for better matches`}
-          </div>
-        )}
-
         {/* Recipe cards */}
-        {!isLoading && recipes.map((recipe, index) => (
+        {!isGenerating && recipes.map((recipe, index) => (
           <Card
             key={recipe.id}
             className="overflow-hidden cursor-pointer hover:shadow-lg transition-all active:scale-[0.99] border-orange-100 slide-up"
@@ -346,15 +396,6 @@ export default function ExploreView() {
                   )}
                 </div>
               </div>
-
-              {/* Match badge */}
-              {(recipe as any).matchScore !== undefined && (recipe as any).matchScore > 0 && (
-                <div className="absolute top-3 right-3">
-                  <div className="px-2 py-1 rounded-md text-xs font-bold bg-white/90 text-orange-700">
-                    {(recipe as any).matchScore}% match
-                  </div>
-                </div>
-              )}
 
               {/* Cuisine badge */}
               <Badge className="absolute bottom-3 left-3 bg-white/90 text-orange-700 font-medium">
@@ -396,58 +437,33 @@ export default function ExploreView() {
                 ))}
               </div>
 
-              {/* Missing ingredients indicator */}
-              {(recipe as any).missingIngredients && (recipe as any).missingIngredients.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-400 mb-1">Missing ingredients</p>
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {(recipe as any).missingIngredients.slice(0, 4).join(', ')}
-                    {(recipe as any).missingIngredients.length > 4 ? '...' : ''}
-                  </p>
-                </div>
-              )}
-
-              {/* Ingredients preview (if no missing info) */}
-              {!(recipe as any).missingIngredients && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-400 mb-1">Key ingredients</p>
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {recipe.ingredients.slice(0, 5).join(', ')}{recipe.ingredients.length > 5 ? '...' : ''}
-                  </p>
-                </div>
-              )}
+              {/* Ingredients preview */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-1">Key ingredients</p>
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {recipe.ingredients.slice(0, 5).join(', ')}{recipe.ingredients.length > 5 ? '...' : ''}
+                </p>
+              </div>
             </CardContent>
           </Card>
         ))}
 
-        {/* No recipes found */}
-        {!isLoading && recipes.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <span className="text-6xl mb-4">🍽️</span>
-            <h2 className="text-xl font-semibold mb-2">No recipes found</h2>
-            <p className="text-muted-foreground text-sm mb-4">
-              {selectedCuisine !== 'all'
-                ? `No ${selectedCuisine} recipes match your ingredients yet. Try a different cuisine or add more pantry items.`
-                : 'Try adding more ingredients or check back when we have more recipes'}
-            </p>
-            {selectedCuisine !== 'all' && (
-              <Button
-                variant="outline"
-                className="border-orange-200 text-orange-600"
-                onClick={() => setSelectedCuisine('all')}
-              >
-                View All Cuisines
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Browse more hint */}
-        {!isLoading && recipes.length > 0 && (
+        {/* Sample recipes label */}
+        {!isGenerating && recipes.length > 0 && pantryItems.length === 0 && (
           <div className="text-center py-2">
             <p className="text-xs text-gray-400">
               <Sparkles className="w-3 h-3 inline mr-1" />
-              From our recipe database — add pantry items for personalized matches
+              Popular recipes — add pantry items for personalized suggestions
+            </p>
+          </div>
+        )}
+
+        {/* Generated recipes label */}
+        {!isGenerating && recipes.length > 0 && pantryItems.length > 0 && (
+          <div className="text-center py-2">
+            <p className="text-xs text-gray-400">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              AI-suggested recipes from your pantry ingredients
             </p>
           </div>
         )}

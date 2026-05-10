@@ -4,8 +4,6 @@ import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 
-export const maxDuration = 120 // Allow up to 120 seconds for AI image generation
-
 export async function POST(request: NextRequest) {
   let imagePath: string | null = null
 

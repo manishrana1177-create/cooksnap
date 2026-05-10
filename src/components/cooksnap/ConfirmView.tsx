@@ -198,36 +198,6 @@ export default function ConfirmView() {
         ? pantryItems.map((p) => p.name)
         : []
 
-      // FIRST: Search database for matching recipes (instant)
-      const searchResponse = await fetch('/api/recipes/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingredients: [...confirmedIngredients, ...pantryNames],
-          cuisine: selectedCuisine !== 'global' ? selectedCuisine : undefined,
-          limit: 20,
-        }),
-      })
-
-      if (searchResponse.ok) {
-        const searchData = await searchResponse.json()
-        if (searchData.recipes && searchData.recipes.length >= 3) {
-          // Found enough database matches — use them
-          setRecipes(searchData.recipes)
-          toast({
-            title: 'Recipes found!',
-            description: `${searchData.recipes.length} recipes from our database`,
-          })
-          setCurrentView('results')
-          setIsGenerating(false)
-          return
-        }
-      }
-
-      // FALLBACK: Use AI to generate recipes if database doesn't have enough
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 120000)
-
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -236,10 +206,7 @@ export default function ConfirmView() {
           cuisine: selectedCuisine,
           pantryIngredients: pantryNames,
         }),
-        signal: controller.signal,
       })
-
-      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -264,12 +231,9 @@ export default function ConfirmView() {
       }
     } catch (error) {
       console.error(error)
-      const isTimeout = error instanceof Error && error.name === 'AbortError'
       toast({
-        title: isTimeout ? 'Taking too long' : 'Generation failed',
-        description: isTimeout
-          ? 'AI is taking too long. Please try again.'
-          : (error instanceof Error ? error.message : 'Could not generate recipes. Please try again.'),
+        title: 'Generation failed',
+        description: error instanceof Error ? error.message : 'Could not generate recipes. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -476,17 +440,18 @@ export default function ConfirmView() {
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {[
-              { id: 'global', label: '🍽️ All' },
-              { id: 'North Indian', label: '🫓 North Indian' },
-              { id: 'South Indian', label: '🥘 South Indian' },
-              { id: 'East Indian', label: '🍲 East Indian' },
-              { id: 'West Indian', label: '🥗 West Indian' },
-              { id: 'Indo-Chinese', label: '🥡 Indo-Chinese' },
-              { id: 'Street Food', label: '🌮 Street Food' },
-              { id: 'Fast Food & Cafe', label: '🍔 Fast Food & Cafe' },
-              { id: 'Healthy & Fitness', label: '🥗 Healthy & Fitness' },
-              { id: 'Vegetarian', label: '🌿 Vegetarian' },
-              { id: 'Non-Vegetarian', label: '🍗 Non-Vegetarian' },
+              { id: 'global', label: '🌍 Global' },
+              { id: 'indian', label: '🇮🇳 Indian' },
+              { id: 'italian', label: '🇮🇹 Italian' },
+              { id: 'chinese', label: '🇨🇳 Chinese' },
+              { id: 'mexican', label: '🇲🇽 Mexican' },
+              { id: 'japanese', label: '🇯🇵 Japanese' },
+              { id: 'thai', label: '🇹🇭 Thai' },
+              { id: 'mediterranean', label: '🫒 Mediterranean' },
+              { id: 'american', label: '🇺🇸 American' },
+              { id: 'korean', label: '🇰🇷 Korean' },
+              { id: 'french', label: '🇫🇷 French' },
+              { id: 'middle-eastern', label: '🧆 Middle Eastern' },
             ].map((c) => (
               <button
                 key={c.id}
@@ -513,7 +478,7 @@ export default function ConfirmView() {
             {isGenerating ? (
               <>
                 <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Finding Recipes...
+                Generating Recipes...
               </>
             ) : (
               <>
