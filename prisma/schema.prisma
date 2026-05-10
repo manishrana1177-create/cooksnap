@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model PantryItem {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("other")
+  createdAt DateTime @default(now())
+}
+
+model FavoriteRecipe {
+  id          String   @id @default(cuid())
+  title       String
+  cuisine     String   @default("global")
+  cookTime    String   @default("")
+  prepTime    String   @default("")
+  servings    Int      @default(2)
+  difficulty  String   @default("easy")
+  ingredients String   // JSON string of ingredients array
+  steps       String   // JSON string of steps array
+  tags        String   @default("[]") // JSON string of tags array
+  imagePrompt String   @default("")
+  createdAt   DateTime @default(now())
+}
