@@ -39,6 +39,7 @@ export default function ConfirmView() {
     manualInput,
     setManualInput,
     selectedCuisine,
+    setSelectedCuisine,
     isGenerating,
     setIsGenerating,
     setRecipes,
@@ -233,7 +234,7 @@ export default function ConfirmView() {
       } else {
         toast({
           title: 'No recipes found',
-          description: 'Try adding more ingredients or changing the cuisine',
+          description: data.warning || 'Try adding more ingredients or changing the cuisine',
           variant: 'destructive',
         })
       }
@@ -458,6 +459,41 @@ export default function ConfirmView() {
                 }`}
               >
                 {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cuisine Selector */}
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Cuisine Style
+          </h2>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {[
+              { id: 'global', label: '🌍 Global' },
+              { id: 'indian', label: '🇮🇳 Indian' },
+              { id: 'italian', label: '🇮🇹 Italian' },
+              { id: 'chinese', label: '🇨🇳 Chinese' },
+              { id: 'mexican', label: '🇲🇽 Mexican' },
+              { id: 'japanese', label: '🇯🇵 Japanese' },
+              { id: 'thai', label: '🇹🇭 Thai' },
+              { id: 'mediterranean', label: '🫒 Mediterranean' },
+              { id: 'american', label: '🇺🇸 American' },
+              { id: 'korean', label: '🇰🇷 Korean' },
+              { id: 'french', label: '🇫🇷 French' },
+              { id: 'middle-eastern', label: '🧆 Middle Eastern' },
+            ].map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCuisine(c.id)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  selectedCuisine === c.id
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-orange-300'
+                }`}
+              >
+                {c.label}
               </button>
             ))}
           </div>

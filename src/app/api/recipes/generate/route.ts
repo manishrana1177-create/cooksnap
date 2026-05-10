@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const completion = await zai.chat.completions.create({
       messages: [
         {
-          role: 'assistant',
+          role: 'system',
           content: `You are a creative chef AI that generates recipes based on available ingredients. Generate 5-6 delicious recipes using the provided ingredients ${cuisineContext}. ${dietContext}
 
 Return ONLY a valid JSON array of recipe objects with this exact format, no other text, no markdown:
@@ -77,10 +77,25 @@ Rules:
 
     let recipes
     try {
+      // Try to extract JSON array from the response
       const jsonMatch = responseText.match(/\[[\s\S]*\]/)
-      recipes = jsonMatch ? JSON.parse(jsonMatch[0]) : []
-    } catch {
+      if (jsonMatch) {
+        recipes = JSON.parse(jsonMatch[0])
+      } else {
+        console.error('No JSON array found in response:', responseText.substring(0, 200))
+        recipes = []
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Response:', responseText.substring(0, 200))
       recipes = []
+    }
+
+    if (!recipes || recipes.length === 0) {
+      console.error('No recipes parsed. Raw response length:', responseText.length)
+      return NextResponse.json({
+        recipes: [],
+        warning: 'AI could not generate recipes. Please try again with different ingredients.'
+      })
     }
 
     // Add unique IDs and ensure isVegetarian field exists
