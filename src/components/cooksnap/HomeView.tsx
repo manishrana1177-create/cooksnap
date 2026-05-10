@@ -1,78 +1,236 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { Camera, ChefHat, Sparkles, BookOpen, Refrigerator, Leaf, Drumstick } from 'lucide-react'
+import {
+  Camera,
+  ChefHat,
+  Sparkles,
+  BookOpen,
+  Refrigerator,
+  Leaf,
+  Drumstick,
+  Bell,
+  Menu,
+  Clock,
+  Users,
+  Flame,
+  Lightbulb,
+  ShoppingCart,
+  ArrowRight,
+  Heart,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
-const cuisines = [
-  { id: 'global', label: '🌍 Global' },
-  { id: 'indian', label: '🇮🇳 Indian' },
-  { id: 'italian', label: '🇮🇹 Italian' },
-  { id: 'chinese', label: '🇨🇳 Chinese' },
-  { id: 'mexican', label: '🇲🇽 Mexican' },
-  { id: 'japanese', label: '🇯🇵 Japanese' },
-  { id: 'thai', label: '🇹🇭 Thai' },
-  { id: 'mediterranean', label: '🫒 Mediterranean' },
-  { id: 'american', label: '🇺🇸 American' },
-  { id: 'korean', label: '🇰🇷 Korean' },
-  { id: 'french', label: '🇫🇷 French' },
-  { id: 'middle-eastern', label: '🧆 Middle Eastern' },
+const quickActions = [
+  { id: 'scan', icon: Camera, label: 'Scan Fridge', color: 'bg-orange-100 text-orange-600', action: 'scanner' as const },
+  { id: 'type', icon: Sparkles, label: 'Type Ingredients', color: 'bg-amber-100 text-amber-600', action: 'confirm' as const },
+  { id: 'pantry', icon: Refrigerator, label: 'My Pantry', color: 'bg-green-100 text-green-600', action: 'pantry' as const },
+  { id: 'fav', icon: Heart, label: 'Favorites', color: 'bg-red-100 text-red-500', action: 'favorites' as const },
+  { id: 'veg', icon: Leaf, label: 'Veg Recipes', color: 'bg-emerald-100 text-emerald-600', action: 'confirm' as const },
 ]
 
-const dietOptions = [
-  { id: 'all' as const, label: '🍽️ All', desc: 'All recipes' },
-  { id: 'veg' as const, label: '🟢 Veg', desc: 'Vegetarian only' },
-  { id: 'nonveg' as const, label: '🔴 Non-Veg', desc: 'Non-vegetarian' },
+const smartTips = [
+  {
+    icon: '🥬',
+    color: 'bg-green-100',
+    title: 'Fresh greens going bad?',
+    desc: 'Sauté them with garlic for a quick side dish!',
+  },
+  {
+    icon: '💡',
+    color: 'bg-amber-100',
+    title: 'Pro Tip',
+    desc: 'Leftover rice? Make fried rice with veggies and eggs!',
+  },
+]
+
+const sampleRecipes = [
+  {
+    id: 'sample-1',
+    title: 'Paneer Butter Masala',
+    cuisine: 'Indian',
+    time: '30 min',
+    difficulty: 'Easy',
+    isVeg: true,
+    match: true,
+    emoji: '🍛',
+  },
+  {
+    id: 'sample-2',
+    title: 'Chicken Tikka',
+    cuisine: 'Indian',
+    time: '45 min',
+    difficulty: 'Medium',
+    isVeg: false,
+    match: false,
+    emoji: '🍗',
+  },
+  {
+    id: 'sample-3',
+    title: 'Pasta Primavera',
+    cuisine: 'Italian',
+    time: '25 min',
+    difficulty: 'Easy',
+    isVeg: true,
+    match: false,
+    emoji: '🍝',
+  },
 ]
 
 export default function HomeView() {
-  const { setCurrentView, selectedCuisine, setSelectedCuisine, pantryItems, favorites, dietFilter, setDietFilter } = useAppStore()
+  const {
+    setCurrentView,
+    selectedCuisine,
+    setSelectedCuisine,
+    pantryItems,
+    favorites,
+    dietFilter,
+    setDietFilter,
+  } = useAppStore()
+
+  const [showMenu, setShowMenu] = useState(false)
+
+  const recipesToShow = favorites.length > 0
+    ? favorites.slice(0, 3).map((f) => ({
+        id: f.id,
+        title: f.title,
+        cuisine: f.cuisine,
+        time: f.prepTime,
+        difficulty: f.difficulty,
+        isVeg: f.isVegetarian ?? true,
+        match: false,
+        emoji: '🍽️',
+      }))
+    : sampleRecipes
 
   return (
-    <div className="view-transition min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-amber-700 text-white px-6 pt-12 pb-10 rounded-b-3xl shadow-lg">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-8 text-8xl rotate-12">🍳</div>
-          <div className="absolute bottom-4 left-8 text-6xl -rotate-12">🥘</div>
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <ChefHat className="w-8 h-8" />
-            <h1 className="text-3xl font-bold tracking-tight">CookSnap</h1>
-          </div>
-          <p className="text-orange-100 text-base mb-6">
-            Snap your fridge. Get instant recipes. Cook something amazing!
-          </p>
-          <Button
-            onClick={() => setCurrentView('scanner')}
-            className="w-full bg-white text-orange-600 hover:bg-orange-50 font-semibold text-lg py-6 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
+    <div className="view-transition min-h-screen flex flex-col bg-gray-50/50 pb-24">
+      {/* ── Top Header ── */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Hamburger */}
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center active:scale-95 transition-transform"
           >
-            <Camera className="w-5 h-5 mr-2" />
-            Scan My Fridge
-          </Button>
+            <Menu className="w-4.5 h-4.5 text-gray-600" />
+          </button>
+
+          {/* Logo */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
+              <ChefHat className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-lg font-bold text-gray-800 leading-tight tracking-tight">CookSnap</h1>
+              <p className="text-[9px] text-gray-400 font-medium -mt-0.5">AI Kitchen Companion</p>
+            </div>
+          </div>
+
+          {/* Notification */}
+          <button className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center relative active:scale-95 transition-transform">
+            <Bell className="w-4.5 h-4.5 text-gray-600" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full border border-white" />
+          </button>
+        </div>
+
+        {/* Dropdown menu */}
+        {showMenu && (
+          <div className="absolute top-full left-3 right-3 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-40 slide-up">
+            {[
+              { label: 'Home', icon: '🏠', view: 'home' as const },
+              { label: 'Scan Fridge', icon: '📸', view: 'scanner' as const },
+              { label: 'My Pantry', icon: '🧺', view: 'pantry' as const },
+              { label: 'Favorites', icon: '❤️', view: 'favorites' as const },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => {
+                  setCurrentView(item.view)
+                  setShowMenu(false)
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 text-left transition-colors"
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Hero Banner ── */}
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-orange-100/60">
+        <div className="flex items-stretch">
+          {/* Left: Text */}
+          <div className="flex-1 px-5 py-5 flex flex-col justify-center">
+            <h2 className="text-xl font-bold text-gray-800 leading-tight mb-1">
+              Not sure what<br />to cook?
+            </h2>
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+              Snap your fridge or pantry and let AI suggest recipes just for you!
+            </p>
+            <Button
+              onClick={() => setCurrentView('scanner')}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-sm py-3 px-4 rounded-xl shadow-md shadow-orange-500/25 transition-all active:scale-[0.97] w-fit"
+            >
+              <Camera className="w-4 h-4 mr-1.5" />
+              Scan Fridge
+            </Button>
+          </div>
+
+          {/* Right: Fridge Image */}
+          <div className="w-[140px] relative flex-shrink-0">
+            <Image
+              src="/fridge-hero.png"
+              alt="Open fridge"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+          </div>
         </div>
       </div>
 
-      {/* Diet Preference */}
-      <div className="px-4 pt-5 pb-3">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-base font-semibold text-foreground">Diet Preference</h2>
+      {/* ── Quick Actions ── */}
+      <div className="px-4 mt-5">
+        <h2 className="text-sm font-bold text-gray-800 mb-3">Quick Actions</h2>
+        <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {quickActions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => setCurrentView(action.action)}
+              className="flex flex-col items-center gap-1.5 min-w-[68px] active:scale-95 transition-transform"
+            >
+              <div className={`w-12 h-12 rounded-2xl ${action.color} flex items-center justify-center shadow-sm`}>
+                <action.icon className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">{action.label}</span>
+            </button>
+          ))}
         </div>
+      </div>
+
+      {/* ── Diet Preference Pills ── */}
+      <div className="px-4 mt-5">
+        <h2 className="text-sm font-bold text-gray-800 mb-2">Diet Preference</h2>
         <div className="flex gap-2">
-          {dietOptions.map((opt) => (
+          {[
+            { id: 'all' as const, label: '🍽️ All', activeClass: 'bg-orange-500 text-white shadow-md shadow-orange-500/20' },
+            { id: 'veg' as const, label: '🟢 Veg', activeClass: 'bg-green-500 text-white shadow-md shadow-green-500/20' },
+            { id: 'nonveg' as const, label: '🔴 Non-Veg', activeClass: 'bg-red-500 text-white shadow-md shadow-red-500/20' },
+          ].map((opt) => (
             <button
               key={opt.id}
               onClick={() => setDietFilter(opt.id)}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 dietFilter === opt.id
-                  ? opt.id === 'veg'
-                    ? 'bg-green-500 text-white shadow-md'
-                    : opt.id === 'nonveg'
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'bg-orange-500 text-white shadow-md'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? opt.activeClass
+                  : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'
               }`}
             >
               {opt.label}
@@ -81,21 +239,34 @@ export default function HomeView() {
         </div>
       </div>
 
-      {/* Cuisine Selector */}
-      <div className="px-4 pb-3">
+      {/* ── Cuisine Selector ── */}
+      <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-base font-semibold text-foreground">Cuisine Style</h2>
-          <span className="text-sm text-muted-foreground">Choose your flavor</span>
+          <h2 className="text-sm font-bold text-gray-800">Cuisine Style</h2>
+          <span className="text-[10px] text-orange-500 font-semibold">Choose your flavor</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {cuisines.map((c) => (
+          {[
+            { id: 'global', label: '🌍 Global' },
+            { id: 'indian', label: '🇮🇳 Indian' },
+            { id: 'italian', label: '🇮🇹 Italian' },
+            { id: 'chinese', label: '🇨🇳 Chinese' },
+            { id: 'mexican', label: '🇲🇽 Mexican' },
+            { id: 'japanese', label: '🇯🇵 Japanese' },
+            { id: 'thai', label: '🇹🇭 Thai' },
+            { id: 'mediterranean', label: '🫒 Mediterranean' },
+            { id: 'american', label: '🇺🇸 American' },
+            { id: 'korean', label: '🇰🇷 Korean' },
+            { id: 'french', label: '🇫🇷 French' },
+            { id: 'middle-eastern', label: '🧆 Middle Eastern' },
+          ].map((c) => (
             <button
               key={c.id}
               onClick={() => setSelectedCuisine(c.id)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 selectedCuisine === c.id
-                  ? 'bg-orange-500 text-white shadow-md'
-                  : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                  ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/25'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300'
               }`}
             >
               {c.label}
@@ -104,81 +275,147 @@ export default function HomeView() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 py-3">
-        <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <Card
-            className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-orange-100"
-            onClick={() => setCurrentView('scanner')}
-          >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <Camera className="w-6 h-6 text-orange-600" />
-              </div>
-              <span className="text-sm font-medium">Scan Fridge</span>
-              <span className="text-xs text-muted-foreground">Snap &amp; identify</span>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-orange-100"
-            onClick={() => setCurrentView('confirm')}
-          >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-amber-600" />
-              </div>
-              <span className="text-sm font-medium">Type Ingredients</span>
-              <span className="text-xs text-muted-foreground">English &amp; Hinglish</span>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-orange-100"
-            onClick={() => setCurrentView('pantry')}
-          >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Refrigerator className="w-6 h-6 text-green-600" />
-              </div>
-              <span className="text-sm font-medium">My Pantry</span>
-              <span className="text-xs text-muted-foreground">{pantryItems.length} items saved</span>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-orange-100"
+      {/* ── AI Recipe Suggestions ── */}
+      <div className="mt-5">
+        <div className="flex items-center justify-between px-4 mb-3">
+          <h2 className="text-sm font-bold text-gray-800">AI Recipe Suggestions</h2>
+          <button
             onClick={() => setCurrentView('favorites')}
+            className="text-[11px] font-semibold text-orange-500 flex items-center gap-0.5 hover:gap-1.5 transition-all"
           >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-red-500" />
+            See all <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto px-4 pb-1" style={{ scrollbarWidth: 'none' }}>
+          {recipesToShow.map((recipe, index) => (
+            <Card
+              key={recipe.id}
+              className="flex-shrink-0 w-[160px] overflow-hidden border-0 shadow-md hover:shadow-lg transition-all active:scale-[0.97] cursor-pointer bg-white"
+              onClick={() => setCurrentView('confirm')}
+            >
+              {/* Image area */}
+              <div className="h-[110px] relative bg-gradient-to-br from-orange-200 to-amber-100 flex items-center justify-center">
+                <span className="text-5xl">{recipe.emoji}</span>
+
+                {/* Best Match badge */}
+                {recipe.match && (
+                  <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-[9px] px-1.5 py-0.5 font-bold">
+                    Best Match
+                  </Badge>
+                )}
+
+                {/* Veg/Non-veg indicator */}
+                <div className="absolute top-2 right-2">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      recipe.isVeg ? 'bg-green-500' : 'bg-red-500'
+                    }`}
+                  >
+                    {recipe.isVeg ? (
+                      <Leaf className="w-3 h-3 text-white" />
+                    ) : (
+                      <Drumstick className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Heart */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCurrentView('favorites')
+                  }}
+                  className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow-sm"
+                >
+                  <Heart className="w-3.5 h-3.5 text-red-400" />
+                </button>
               </div>
-              <span className="text-sm font-medium">Favorites</span>
-              <span className="text-xs text-muted-foreground">{favorites.length} recipes</span>
-            </CardContent>
-          </Card>
+
+              <CardContent className="p-2.5">
+                <h3 className="text-xs font-bold text-gray-800 leading-tight mb-1 line-clamp-1">{recipe.title}</h3>
+                <div className="flex items-center gap-2 text-[9px] text-gray-400">
+                  <div className="flex items-center gap-0.5">
+                    <Clock className="w-2.5 h-2.5" />
+                    <span>{recipe.time}</span>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    <Flame className="w-2.5 h-2.5" />
+                    <span>{recipe.difficulty}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 
-      {/* How it works */}
-      <div className="px-4 py-4 pb-8">
-        <h2 className="text-base font-semibold text-foreground mb-4">How It Works</h2>
-        <div className="space-y-4">
+      {/* ── Missing Ingredients Card ── */}
+      {pantryItems.length > 0 && (
+        <div className="mx-4 mt-5">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 flex items-center gap-3 border border-orange-100/50">
+            <div className="w-11 h-11 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <ShoppingCart className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-700">
+                Missing ingredients?
+              </p>
+              <p className="text-[10px] text-gray-400 truncate">
+                Add items to your pantry to get better recipe matches
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setCurrentView('pantry')}
+              className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 shadow-sm"
+            >
+              Add Items
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Smart Tips ── */}
+      <div className="mt-5 px-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-gray-800">Smart Tips</h2>
+          <button className="text-[11px] font-semibold text-orange-500">See all</button>
+        </div>
+
+        <div className="flex gap-3">
+          {smartTips.map((tip, index) => (
+            <div
+              key={index}
+              className="flex-1 bg-white rounded-2xl p-3.5 shadow-sm border border-gray-50"
+            >
+              <div className={`w-9 h-9 rounded-full ${tip.color} flex items-center justify-center mb-2 text-lg`}>
+                {tip.icon}
+              </div>
+              <h3 className="text-xs font-bold text-gray-700 mb-0.5 leading-tight">{tip.title}</h3>
+              <p className="text-[10px] text-gray-400 leading-relaxed">{tip.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── How It Works (bottom section) ── */}
+      <div className="px-4 mt-6 mb-4">
+        <h2 className="text-sm font-bold text-gray-800 mb-3">How It Works</h2>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 space-y-3">
           {[
-            { step: '1', icon: '📸', title: 'Snap Your Fridge', desc: 'Take a photo of your fridge or pantry contents' },
-            { step: '2', icon: '🤖', title: 'AI Identifies Ingredients', desc: 'Our AI recognizes what food items you have (supports Hinglish!)' },
-            { step: '3', icon: '🍳', title: 'Get Instant Recipes', desc: 'Receive personalized recipes with real images & veg/non-veg filters' },
-            { step: '4', icon: '👨‍🍳', title: 'Cook & Enjoy', desc: 'Follow step-by-step instructions and enjoy your meal' },
+            { step: '1', emoji: '📸', title: 'Snap Your Fridge', desc: 'Take a photo of your fridge or pantry contents' },
+            { step: '2', emoji: '🤖', title: 'AI Identifies Ingredients', desc: 'Our AI recognizes what food items you have (Hinglish supported!)' },
+            { step: '3', emoji: '🍳', title: 'Get Instant Recipes', desc: 'Personalized recipes with real images & veg/non-veg filters' },
+            { step: '4', emoji: '👨‍🍳', title: 'Cook & Enjoy', desc: 'Follow step-by-step instructions and enjoy your meal' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-lg flex-shrink-0">
-                {item.icon}
+              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-sm flex-shrink-0">
+                {item.emoji}
               </div>
-              <div>
-                <h3 className="font-medium text-sm">{item.title}</h3>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              <div className="flex-1">
+                <h3 className="text-xs font-semibold text-gray-700">{item.title}</h3>
+                <p className="text-[10px] text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
