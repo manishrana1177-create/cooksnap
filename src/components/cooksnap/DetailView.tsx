@@ -260,8 +260,13 @@ export default function DetailView() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
-                <span className="text-7xl">🍽️</span>
+              <div className="w-full h-full bg-gradient-to-br from-orange-300 via-amber-200 to-orange-400 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/30 flex items-center justify-center">
+                    <Flame className="w-8 h-8 text-white" />
+                  </div>
+                  <span className="text-sm text-white/90 font-medium">Cooking up an image...</span>
+                </div>
               </div>
             )}
             {/* Veg/Non-veg badge on image */}

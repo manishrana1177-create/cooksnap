@@ -135,8 +135,10 @@ export default function FavoritesView() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl">🍽️</span>
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-300 via-amber-200 to-orange-400">
+                    <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center">
+                      <Flame className="w-5 h-5 text-white" />
+                    </div>
                   </div>
                 )}
 

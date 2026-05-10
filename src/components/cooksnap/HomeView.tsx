@@ -57,7 +57,7 @@ const sampleRecipes = [
     difficulty: 'Easy',
     isVeg: true,
     match: true,
-    emoji: '🍛',
+    image: '/recipe-images/paneer-butter-masala.png',
   },
   {
     id: 'sample-2',
@@ -67,7 +67,7 @@ const sampleRecipes = [
     difficulty: 'Medium',
     isVeg: false,
     match: false,
-    emoji: '🍗',
+    image: '/recipe-images/chicken-tikka.png',
   },
   {
     id: 'sample-3',
@@ -77,7 +77,7 @@ const sampleRecipes = [
     difficulty: 'Easy',
     isVeg: true,
     match: false,
-    emoji: '🍝',
+    image: '/recipe-images/pasta-primavera.png',
   },
 ]
 
@@ -86,6 +86,7 @@ export default function HomeView() {
     setCurrentView,
     pantryItems,
     favorites,
+    recipeImageUrls,
   } = useAppStore()
 
   const [showMenu, setShowMenu] = useState(false)
@@ -99,7 +100,7 @@ export default function HomeView() {
         difficulty: f.difficulty,
         isVeg: f.isVegetarian ?? true,
         match: false,
-        emoji: '🍽️',
+        image: recipeImageUrls[f.id] || null,
       }))
     : sampleRecipes
 
@@ -231,8 +232,18 @@ export default function HomeView() {
               onClick={() => setCurrentView('confirm')}
             >
               {/* Image area */}
-              <div className="h-[110px] relative bg-gradient-to-br from-orange-200 to-amber-100 flex items-center justify-center">
-                <span className="text-5xl">{recipe.emoji}</span>
+              <div className="h-[110px] relative overflow-hidden">
+                {recipe.image ? (
+                  <img
+                    src={recipe.image}
+                    alt={recipe.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-orange-200 to-amber-100 flex items-center justify-center">
+                    <span className="text-4xl">🍽️</span>
+                  </div>
+                )}
 
                 {/* Best Match badge */}
                 {recipe.match && (

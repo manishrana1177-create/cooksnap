@@ -269,10 +269,12 @@ export default function ResultsView() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-300 via-amber-200 to-orange-400">
                   <div className="text-center">
-                    <span className="text-5xl block mb-1">🍽️</span>
-                    <span className="text-xs text-white/80">Generating image...</span>
+                    <div className="w-12 h-12 mx-auto mb-1 rounded-full bg-white/30 flex items-center justify-center animate-pulse">
+                      <Flame className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="text-xs text-white/90 font-medium">Cooking up an image...</span>
                   </div>
                 </div>
               )}
