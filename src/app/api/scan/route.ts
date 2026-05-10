@@ -4,6 +4,8 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { execSync } from 'child_process'
 
+export const maxDuration = 120 // Allow up to 120 seconds for AI vision
+
 export async function POST(request: NextRequest) {
   let filePath: string | null = null
   let outputPath: string | null = null

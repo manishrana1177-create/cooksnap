@@ -198,6 +198,10 @@ export default function ConfirmView() {
         ? pantryItems.map((p) => p.name)
         : []
 
+      // Use AbortController with 120s timeout for AI generation
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000)
+
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,7 +210,10 @@ export default function ConfirmView() {
           cuisine: selectedCuisine,
           pantryIngredients: pantryNames,
         }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -231,9 +238,12 @@ export default function ConfirmView() {
       }
     } catch (error) {
       console.error(error)
+      const isTimeout = error instanceof Error && error.name === 'AbortError'
       toast({
-        title: 'Generation failed',
-        description: error instanceof Error ? error.message : 'Could not generate recipes. Please try again.',
+        title: isTimeout ? 'Taking too long' : 'Generation failed',
+        description: isTimeout
+          ? 'AI is taking too long. Please try again.'
+          : (error instanceof Error ? error.message : 'Could not generate recipes. Please try again.'),
         variant: 'destructive',
       })
     } finally {
