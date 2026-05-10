@@ -33,3 +33,26 @@ Stage Summary:
 - Cooking mode with built-in timer
 - Cuisine selector supporting 12 cuisine styles
 - All files saved to /home/z/my-project/
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix scan API and recipe generation issues
+
+Work Log:
+- Identified root cause: VLM API requires `createVision()` not `create()` for image analysis
+- Discovered VLM API doesn't support base64 data URLs, only public HTTP URLs
+- Implemented solution: Use `z-ai vision` CLI tool via `child_process.execSync` which supports local file paths
+- Scan API now saves uploaded image to /tmp, runs CLI tool, parses JSON output
+- Added fallback: if scan fails, user is automatically redirected to manual ingredient input
+- Fixed ConfirmView navigation: back button now goes to correct previous view (scanner or home)
+- Added "Save to Pantry" button on ConfirmView
+- Added better error handling and loading states in ScannerView
+- Tested scan API: returns 200 with 13 detected ingredients in 9.9s
+- Tested recipe generation API: returns 200 with 4 recipes in 16.3s
+
+Stage Summary:
+- Both scan and recipe generation APIs are now fully functional
+- Scan API uses CLI tool approach for VLM (local file path support)
+- Graceful fallback to manual input if scan fails
+- All lint checks pass

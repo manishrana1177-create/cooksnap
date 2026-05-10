@@ -1,7 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { Camera, Upload, ArrowLeft, Image as ImageIcon, X } from 'lucide-react'
+import { Camera, Upload, ArrowLeft, Image as ImageIcon, X, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRef, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
@@ -19,6 +19,7 @@ export default function ScannerView() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -30,6 +31,8 @@ export default function ScannerView() {
       toast({ title: 'File too large', description: 'Please select an image under 10MB', variant: 'destructive' })
       return
     }
+
+    setScanError(null)
 
     // Show preview
     const reader = new FileReader()
@@ -50,7 +53,7 @@ export default function ScannerView() {
       })
 
       if (!response.ok) {
-        throw new Error('Scan failed')
+        throw new Error('Scan request failed')
       }
 
       const data = await response.json()
@@ -62,19 +65,34 @@ export default function ScannerView() {
           description: `Found ${data.ingredients.length} items in your image`,
         })
         setCurrentView('confirm')
+      } else if (data.warning) {
+        // Scan completed but couldn't identify ingredients
+        setScanError(data.warning)
+        toast({
+          title: 'Limited detection',
+          description: data.warning,
+          variant: 'destructive',
+        })
+        // Still navigate to confirm view so user can add manually
+        setCurrentView('confirm')
       } else {
+        setScanError('Could not detect ingredients. You can add them manually.')
         toast({
           title: 'No ingredients detected',
-          description: 'Try taking a clearer photo or type ingredients manually',
+          description: 'Try taking a clearer photo or add ingredients manually',
         })
+        setCurrentView('confirm')
       }
     } catch (error) {
       console.error('Scan error:', error)
+      setScanError('Image analysis failed. You can still add ingredients manually.')
       toast({
         title: 'Scan failed',
-        description: 'Could not analyze the image. Please try again or type ingredients manually.',
+        description: 'Could not analyze the image. You can add ingredients manually.',
         variant: 'destructive',
       })
+      // Still navigate to confirm view so user can add manually
+      setCurrentView('confirm')
     } finally {
       setIsScanning(false)
     }
@@ -187,6 +205,18 @@ export default function ScannerView() {
             </div>
             <p className="text-sm font-medium text-foreground">Analyzing your fridge...</p>
             <p className="text-xs text-muted-foreground">AI is identifying ingredients</p>
+            <p className="text-xs text-muted-foreground">This may take up to 30 seconds</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {scanError && !isScanning && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-red-800">Scan Issue</p>
+              <p className="text-xs text-red-600">{scanError}</p>
+            </div>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { ArrowLeft, Plus, X, ChefHat, Sparkles } from 'lucide-react'
+import { ArrowLeft, Plus, X, ChefHat, Sparkles, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -36,13 +36,25 @@ export default function ConfirmView() {
     setIsGenerating,
     setRecipes,
     pantryItems,
+    setPantryItems,
     usePantryIngredients,
     setUsePantryIngredients,
+    scannedImage,
   } = useAppStore()
 
   const [selectedCategory, setSelectedCategory] = useState('other')
+  const [savingToPantry, setSavingToPantry] = useState(false)
 
   const confirmedCount = detectedIngredients.filter((i) => i.confirmed).length
+
+  // Determine where back button should go
+  const goBack = () => {
+    if (scannedImage) {
+      setCurrentView('scanner')
+    } else {
+      setCurrentView('home')
+    }
+  }
 
   // Load pantry on mount
   useEffect(() => {
@@ -51,14 +63,14 @@ export default function ConfirmView() {
         const res = await fetch('/api/pantry')
         if (res.ok) {
           const data = await res.json()
-          useAppStore.setState({ pantryItems: data.items || [] })
+          setPantryItems(data.items || [])
         }
       } catch (e) {
         console.error(e)
       }
     }
     loadPantry()
-  }, [])
+  }, [setPantryItems])
 
   const handleAddManual = () => {
     if (!manualInput.trim()) return
@@ -70,6 +82,33 @@ export default function ConfirmView() {
     toast({ title: 'Added!', description: `${items.length} ingredient(s) added` })
   }
 
+  const handleSaveToPantry = async () => {
+    const confirmedItems = detectedIngredients
+      .filter((i) => i.confirmed)
+      .map((i) => ({ name: i.name, category: i.category }))
+
+    if (confirmedItems.length === 0) return
+
+    setSavingToPantry(true)
+    try {
+      const res = await fetch('/api/pantry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: confirmedItems }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPantryItems(data.items || [])
+        toast({ title: 'Saved to pantry!', description: `${confirmedItems.length} items saved` })
+      }
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Failed to save', variant: 'destructive' })
+    } finally {
+      setSavingToPantry(false)
+    }
+  }
+
   const handleGenerateRecipes = async () => {
     const confirmedIngredients = detectedIngredients
       .filter((i) => i.confirmed)
@@ -78,7 +117,7 @@ export default function ConfirmView() {
     if (confirmedIngredients.length === 0) {
       toast({
         title: 'No ingredients selected',
-        description: 'Please confirm at least one ingredient',
+        description: 'Please add and confirm at least one ingredient',
         variant: 'destructive',
       })
       return
@@ -101,13 +140,14 @@ export default function ConfirmView() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to generate recipes')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to generate recipes')
       }
 
       const data = await response.json()
-      setRecipes(data.recipes || [])
 
       if (data.recipes && data.recipes.length > 0) {
+        setRecipes(data.recipes)
         toast({
           title: 'Recipes ready!',
           description: `Found ${data.recipes.length} recipes for you`,
@@ -124,7 +164,7 @@ export default function ConfirmView() {
       console.error(error)
       toast({
         title: 'Generation failed',
-        description: 'Could not generate recipes. Please try again.',
+        description: error instanceof Error ? error.message : 'Could not generate recipes. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -141,7 +181,7 @@ export default function ConfirmView() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCurrentView('scanner')}
+              onClick={goBack}
               className="text-foreground"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -159,11 +199,23 @@ export default function ConfirmView() {
         {/* Detected ingredients */}
         {detectedIngredients.length > 0 && (
           <div>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Detected Ingredients
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Detected Ingredients
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-orange-600 h-7"
+                onClick={handleSaveToPantry}
+                disabled={savingToPantry || confirmedCount === 0}
+              >
+                <Save className="w-3 h-3 mr-1" />
+                {savingToPantry ? 'Saving...' : 'Save to Pantry'}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Tap to toggle. Swipe or tap X to remove.
+              Tap to toggle on/off. Tap X to remove.
             </p>
             <div className="flex flex-wrap gap-2">
               {detectedIngredients.map((ingredient) => (
@@ -189,6 +241,16 @@ export default function ConfirmView() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Empty state prompt */}
+        {detectedIngredients.length === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <p className="text-sm text-amber-800 font-medium mb-1">No ingredients yet</p>
+            <p className="text-xs text-amber-600">
+              Add your ingredients below using the text input, or go back and scan your fridge
+            </p>
           </div>
         )}
 
@@ -284,7 +346,7 @@ export default function ConfirmView() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                Find Recipes ({confirmedCount} ingredients)
+                Find Recipes ({confirmedCount} ingredient{confirmedCount !== 1 ? 's' : ''})
               </>
             )}
           </Button>
