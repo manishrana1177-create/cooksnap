@@ -37,10 +37,12 @@ export async function POST(request: NextRequest) {
         prepTime: string
         servings: number
         difficulty: string
+        isVegetarian: boolean
         ingredients: string[]
         steps: string[]
         tags: string[]
         imagePrompt: string
+        imageUrl?: string
       }
     }
 
@@ -68,10 +70,12 @@ export async function POST(request: NextRequest) {
         prepTime: recipe.prepTime || '',
         servings: recipe.servings || 2,
         difficulty: recipe.difficulty || 'easy',
+        isVegetarian: recipe.isVegetarian ?? false,
         ingredients: JSON.stringify(recipe.ingredients),
         steps: JSON.stringify(recipe.steps),
         tags: JSON.stringify(recipe.tags || []),
         imagePrompt: recipe.imagePrompt || '',
+        imageUrl: recipe.imageUrl || '',
       },
     })
 

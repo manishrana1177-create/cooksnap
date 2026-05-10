@@ -1,27 +1,33 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { Camera, ChefHat, Sparkles, BookOpen, Refrigerator } from 'lucide-react'
+import { Camera, ChefHat, Sparkles, BookOpen, Refrigerator, Leaf, Drumstick } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 const cuisines = [
-  { id: 'global', label: '🌍 Global', emoji: '🌍' },
-  { id: 'indian', label: '🇮🇳 Indian', emoji: '🇮🇳' },
-  { id: 'italian', label: '🇮🇹 Italian', emoji: '🇮🇹' },
-  { id: 'chinese', label: '🇨🇳 Chinese', emoji: '🇨🇳' },
-  { id: 'mexican', label: '🇲🇽 Mexican', emoji: '🇲🇽' },
-  { id: 'japanese', label: '🇯🇵 Japanese', emoji: '🇯🇵' },
-  { id: 'thai', label: '🇹🇭 Thai', emoji: '🇹🇭' },
-  { id: 'mediterranean', label: '🫒 Mediterranean', emoji: '🫒' },
-  { id: 'american', label: '🇺🇸 American', emoji: '🇺🇸' },
-  { id: 'korean', label: '🇰🇷 Korean', emoji: '🇰🇷' },
-  { id: 'french', label: '🇫🇷 French', emoji: '🇫🇷' },
-  { id: 'middle-eastern', label: '🧆 Middle Eastern', emoji: '🧆' },
+  { id: 'global', label: '🌍 Global' },
+  { id: 'indian', label: '🇮🇳 Indian' },
+  { id: 'italian', label: '🇮🇹 Italian' },
+  { id: 'chinese', label: '🇨🇳 Chinese' },
+  { id: 'mexican', label: '🇲🇽 Mexican' },
+  { id: 'japanese', label: '🇯🇵 Japanese' },
+  { id: 'thai', label: '🇹🇭 Thai' },
+  { id: 'mediterranean', label: '🫒 Mediterranean' },
+  { id: 'american', label: '🇺🇸 American' },
+  { id: 'korean', label: '🇰🇷 Korean' },
+  { id: 'french', label: '🇫🇷 French' },
+  { id: 'middle-eastern', label: '🧆 Middle Eastern' },
+]
+
+const dietOptions = [
+  { id: 'all' as const, label: '🍽️ All', desc: 'All recipes' },
+  { id: 'veg' as const, label: '🟢 Veg', desc: 'Vegetarian only' },
+  { id: 'nonveg' as const, label: '🔴 Non-Veg', desc: 'Non-vegetarian' },
 ]
 
 export default function HomeView() {
-  const { setCurrentView, selectedCuisine, setSelectedCuisine, pantryItems, favorites } = useAppStore()
+  const { setCurrentView, selectedCuisine, setSelectedCuisine, pantryItems, favorites, dietFilter, setDietFilter } = useAppStore()
 
   return (
     <div className="view-transition min-h-screen flex flex-col">
@@ -49,13 +55,39 @@ export default function HomeView() {
         </div>
       </div>
 
+      {/* Diet Preference */}
+      <div className="px-4 pt-5 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-semibold text-foreground">Diet Preference</h2>
+        </div>
+        <div className="flex gap-2">
+          {dietOptions.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setDietFilter(opt.id)}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
+                dietFilter === opt.id
+                  ? opt.id === 'veg'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : opt.id === 'nonveg'
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-orange-500 text-white shadow-md'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Cuisine Selector */}
-      <div className="px-4 pt-6 pb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Cuisine Style</h2>
+      <div className="px-4 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-semibold text-foreground">Cuisine Style</h2>
           <span className="text-sm text-muted-foreground">Choose your flavor</span>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {cuisines.map((c) => (
             <button
               key={c.id}
@@ -73,8 +105,8 @@ export default function HomeView() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 py-4">
-        <h2 className="text-lg font-semibold text-foreground mb-3">Quick Actions</h2>
+      <div className="px-4 py-3">
+        <h2 className="text-base font-semibold text-foreground mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
           <Card
             className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-orange-100"
@@ -85,7 +117,7 @@ export default function HomeView() {
                 <Camera className="w-6 h-6 text-orange-600" />
               </div>
               <span className="text-sm font-medium">Scan Fridge</span>
-              <span className="text-xs text-muted-foreground">Snap & identify</span>
+              <span className="text-xs text-muted-foreground">Snap &amp; identify</span>
             </CardContent>
           </Card>
 
@@ -98,7 +130,7 @@ export default function HomeView() {
                 <Sparkles className="w-6 h-6 text-amber-600" />
               </div>
               <span className="text-sm font-medium">Type Ingredients</span>
-              <span className="text-xs text-muted-foreground">Manual input</span>
+              <span className="text-xs text-muted-foreground">English &amp; Hinglish</span>
             </CardContent>
           </Card>
 
@@ -132,12 +164,12 @@ export default function HomeView() {
 
       {/* How it works */}
       <div className="px-4 py-4 pb-8">
-        <h2 className="text-lg font-semibold text-foreground mb-4">How It Works</h2>
+        <h2 className="text-base font-semibold text-foreground mb-4">How It Works</h2>
         <div className="space-y-4">
           {[
             { step: '1', icon: '📸', title: 'Snap Your Fridge', desc: 'Take a photo of your fridge or pantry contents' },
-            { step: '2', icon: '🤖', title: 'AI Identifies Ingredients', desc: 'Our AI recognizes what food items you have' },
-            { step: '3', icon: '🍳', title: 'Get Instant Recipes', desc: 'Receive personalized recipes based on your ingredients' },
+            { step: '2', icon: '🤖', title: 'AI Identifies Ingredients', desc: 'Our AI recognizes what food items you have (supports Hinglish!)' },
+            { step: '3', icon: '🍳', title: 'Get Instant Recipes', desc: 'Receive personalized recipes with real images & veg/non-veg filters' },
             { step: '4', icon: '👨‍🍳', title: 'Cook & Enjoy', desc: 'Follow step-by-step instructions and enjoy your meal' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">

@@ -56,3 +56,29 @@ Stage Summary:
 - Scan API uses CLI tool approach for VLM (local file path support)
 - Graceful fallback to manual input if scan fails
 - All lint checks pass
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Add Hinglish support, autocomplete, AI recipe images, and veg/non-veg filters
+
+Work Log:
+- Created comprehensive Hinglish ingredient database (120+ items with English + Hinglish names, categories, emojis)
+- Built autocomplete dropdown component with fuzzy search across English and Hinglish names
+- Added keyboard navigation (Arrow keys, Enter, Escape) for autocomplete
+- Added diet filter (All/Veg/Non-Veg) on Home page and Confirm page
+- Added cuisine filter on Results page (dynamic based on available cuisines)
+- Added veg/non-veg badges (green for Veg, red for Non-Veg) on all recipe cards and detail views
+- Created recipe image generation API using z-ai-generate CLI tool
+- Recipe images are auto-generated when results page loads (1344x768 food photography)
+- Updated Prisma schema with isVegetarian and imageUrl fields
+- Updated favorites API to handle new fields
+- Fixed React Compiler memoization lint error in ResultsView
+- All lint checks pass, dev server running clean
+
+Stage Summary:
+- Hinglish support: Users can type "aloo", "pyaz", "paneer", "chawal" etc. and get matches
+- Autocomplete: Shows dropdown with English name, Hinglish alternatives, category, and emoji
+- Recipe images: AI-generated food photos appear on recipe cards and detail views
+- Filters: Veg/Non-Veg filter + cuisine filter on results page
+- Diet preference: Set on home page or confirm page, sent to AI recipe generator

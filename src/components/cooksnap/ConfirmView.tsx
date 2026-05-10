@@ -1,11 +1,12 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { ArrowLeft, Plus, X, ChefHat, Sparkles, Save } from 'lucide-react'
+import { searchIngredients, getIngredientDisplayName, type IngredientEntry } from '@/lib/ingredients'
+import { ArrowLeft, Plus, X, ChefHat, Sparkles, Save, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { toast } from '@/hooks/use-toast'
 
 const categoryColors: Record<string, string> = {
@@ -21,6 +22,12 @@ const categoryColors: Record<string, string> = {
 }
 
 const categories = ['protein', 'vegetable', 'fruit', 'dairy', 'grain', 'spice', 'condiment', 'beverage', 'other']
+
+const dietOptions = [
+  { id: 'all', label: '🍽️ All', color: 'bg-orange-100 text-orange-700' },
+  { id: 'veg', label: '🟢 Veg', color: 'bg-green-100 text-green-700' },
+  { id: 'nonveg', label: '🔴 Non-Veg', color: 'bg-red-100 text-red-700' },
+]
 
 export default function ConfirmView() {
   const {
@@ -39,15 +46,21 @@ export default function ConfirmView() {
     setPantryItems,
     usePantryIngredients,
     setUsePantryIngredients,
+    dietFilter,
+    setDietFilter,
     scannedImage,
   } = useAppStore()
 
   const [selectedCategory, setSelectedCategory] = useState('other')
   const [savingToPantry, setSavingToPantry] = useState(false)
+  const [suggestions, setSuggestions] = useState<IngredientEntry[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const confirmedCount = detectedIngredients.filter((i) => i.confirmed).length
 
-  // Determine where back button should go
   const goBack = () => {
     if (scannedImage) {
       setCurrentView('scanner')
@@ -72,6 +85,67 @@ export default function ConfirmView() {
     loadPantry()
   }, [setPantryItems])
 
+  // Close suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) &&
+          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleInputChange = (value: string) => {
+    setManualInput(value)
+    if (value.trim().length > 0) {
+      const results = searchIngredients(value)
+      setSuggestions(results)
+      setShowSuggestions(results.length > 0)
+      setHighlightedIndex(-1)
+    } else {
+      setSuggestions([])
+      setShowSuggestions(false)
+    }
+  }
+
+  const selectSuggestion = (item: IngredientEntry) => {
+    // Check if already added
+    const alreadyAdded = detectedIngredients.some(
+      (i) => i.name.toLowerCase() === item.english.toLowerCase()
+    )
+    if (!alreadyAdded) {
+      addManualIngredient(item.english, item.category)
+      toast({ title: 'Added!', description: `${getIngredientDisplayName(item.english)} added` })
+    } else {
+      toast({ title: 'Already added', description: `${item.english} is already in your list` })
+    }
+    setManualInput('')
+    setShowSuggestions(false)
+    setSuggestions([])
+    inputRef.current?.focus()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => Math.min(prev + 1, suggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => Math.max(prev - 1, 0))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+        selectSuggestion(suggestions[highlightedIndex])
+      } else {
+        handleAddManual()
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false)
+    }
+  }
+
   const handleAddManual = () => {
     if (!manualInput.trim()) return
     const items = manualInput.split(',').map((s) => s.trim()).filter(Boolean)
@@ -79,6 +153,8 @@ export default function ConfirmView() {
       addManualIngredient(item, selectedCategory)
     })
     setManualInput('')
+    setShowSuggestions(false)
+    setSuggestions([])
     toast({ title: 'Added!', description: `${items.length} ingredient(s) added` })
   }
 
@@ -136,6 +212,7 @@ export default function ConfirmView() {
           ingredients: confirmedIngredients,
           cuisine: selectedCuisine,
           pantryIngredients: pantryNames,
+          dietFilter,
         }),
       })
 
@@ -178,12 +255,7 @@ export default function ConfirmView() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goBack}
-              className="text-foreground"
-            >
+            <Button variant="ghost" size="icon" onClick={goBack} className="text-foreground">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="text-lg font-semibold">Confirm Ingredients</h1>
@@ -201,7 +273,7 @@ export default function ConfirmView() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Detected Ingredients
+                Your Ingredients
               </h2>
               <Button
                 variant="ghost"
@@ -215,7 +287,7 @@ export default function ConfirmView() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Tap to toggle on/off. Tap X to remove.
+              Tap to toggle. Tap X to remove.
             </p>
             <div className="flex flex-wrap gap-2">
               {detectedIngredients.map((ingredient) => (
@@ -244,12 +316,12 @@ export default function ConfirmView() {
           </div>
         )}
 
-        {/* Empty state prompt */}
+        {/* Empty state */}
         {detectedIngredients.length === 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
             <p className="text-sm text-amber-800 font-medium mb-1">No ingredients yet</p>
             <p className="text-xs text-amber-600">
-              Add your ingredients below using the text input, or go back and scan your fridge
+              Search or type your ingredients below — supports English & Hinglish (e.g. &quot;aloo&quot;, &quot;pyaz&quot;, &quot;paneer&quot;)
             </p>
           </div>
         )}
@@ -273,22 +345,13 @@ export default function ConfirmView() {
                 {usePantryIngredients ? 'Included' : 'Include'}
               </Button>
             </div>
-            {usePantryIngredients && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {pantryItems.map((item) => (
-                  <Badge key={item.id} variant="secondary" className="text-xs bg-green-100 text-green-700">
-                    {item.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
-        {/* Manual add */}
+        {/* Manual add with autocomplete */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Add Ingredients Manually
+            Add Ingredients
           </h2>
 
           {/* Category selector */}
@@ -308,27 +371,96 @@ export default function ConfirmView() {
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <Input
-              value={manualInput}
-              onChange={(e) => setManualInput(e.target.value)}
-              placeholder="e.g. chicken, rice, tomatoes"
-              className="flex-1 border-orange-200 focus:border-orange-400"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddManual()
-              }}
-            />
-            <Button
-              onClick={handleAddManual}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={!manualInput.trim()}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+          {/* Input with autocomplete dropdown */}
+          <div className="relative">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  ref={inputRef}
+                  value={manualInput}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  placeholder='Type ingredient (e.g. "aloo", "chicken", "tamatar")'
+                  className="pl-9 border-orange-200 focus:border-orange-400"
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => {
+                    if (manualInput.trim() && suggestions.length > 0) {
+                      setShowSuggestions(true)
+                    }
+                  }}
+                />
+              </div>
+              <Button
+                onClick={handleAddManual}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={!manualInput.trim()}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Autocomplete Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute z-50 top-12 left-0 right-12 bg-white border border-orange-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+              >
+                {suggestions.map((item, index) => (
+                  <button
+                    key={item.english}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                      index === highlightedIndex
+                        ? 'bg-orange-50'
+                        : 'hover:bg-orange-50/50'
+                    } ${index !== suggestions.length - 1 ? 'border-b border-orange-100' : ''}`}
+                    onClick={() => selectSuggestion(item)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                  >
+                    <span className="text-lg">{item.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground">
+                        {item.english}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {item.hinglish.filter((h) => h.toLowerCase() !== item.english.toLowerCase()).join(', ')}
+                      </div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-1.5 py-0 ${categoryColors[item.category]?.split(' ')[0] || ''} ${categoryColors[item.category]?.split(' ')[1] || ''}`}
+                    >
+                      {item.category}
+                    </Badge>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Separate multiple items with commas
+            Supports English &amp; Hinglish — try &quot;aloo&quot;, &quot;pyaz&quot;, &quot;paneer&quot;, &quot;chawal&quot;
           </p>
+        </div>
+
+        {/* Diet Filter */}
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Diet Preference
+          </h2>
+          <div className="flex gap-2">
+            {dietOptions.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setDietFilter(opt.id as 'all' | 'veg' | 'nonveg')}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                  dietFilter === opt.id
+                    ? `${opt.color} border-current shadow-sm`
+                    : 'bg-gray-50 text-gray-500 border-gray-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Generate button */}
@@ -353,7 +485,7 @@ export default function ConfirmView() {
           {isGenerating && (
             <p className="text-center text-xs text-muted-foreground mt-2">
               <ChefHat className="w-3 h-3 inline mr-1" />
-              AI chef is creating recipes based on your ingredients...
+              AI chef is creating {dietFilter === 'veg' ? 'vegetarian' : dietFilter === 'nonveg' ? 'non-vegetarian' : ''} recipes...
             </p>
           )}
         </div>

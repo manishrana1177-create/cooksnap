@@ -16,10 +16,12 @@ export interface Recipe {
   prepTime: string
   servings: number
   difficulty: string
+  isVegetarian: boolean
   ingredients: string[]
   steps: string[]
   tags: string[]
   imagePrompt: string
+  imageUrl?: string
 }
 
 export interface PantryItem {
@@ -37,10 +39,12 @@ export interface FavoriteRecipe {
   prepTime: string
   servings: number
   difficulty: string
+  isVegetarian: boolean
   ingredients: string[]
   steps: string[]
   tags: string[]
   imagePrompt: string
+  imageUrl?: string
   createdAt: string
 }
 
@@ -62,11 +66,19 @@ interface AppState {
   selectedCuisine: string
   setSelectedCuisine: (cuisine: string) => void
 
+  // Diet filter
+  dietFilter: 'all' | 'veg' | 'nonveg'
+  setDietFilter: (filter: 'all' | 'veg' | 'nonveg') => void
+
   // Recipes
   recipes: Recipe[]
   setRecipes: (recipes: Recipe[]) => void
   selectedRecipe: Recipe | null
   setSelectedRecipe: (recipe: Recipe | null) => void
+
+  // Recipe image URLs
+  recipeImageUrls: Record<string, string>
+  setRecipeImageUrl: (recipeId: string, url: string) => void
 
   // Pantry
   pantryItems: PantryItem[]
@@ -125,11 +137,22 @@ export const useAppStore = create<AppState>((set) => ({
   selectedCuisine: 'global',
   setSelectedCuisine: (cuisine) => set({ selectedCuisine: cuisine }),
 
+  // Diet filter
+  dietFilter: 'all',
+  setDietFilter: (filter) => set({ dietFilter: filter }),
+
   // Recipes
   recipes: [],
   setRecipes: (recipes) => set({ recipes }),
   selectedRecipe: null,
   setSelectedRecipe: (recipe) => set({ selectedRecipe: recipe }),
+
+  // Recipe images
+  recipeImageUrls: {},
+  setRecipeImageUrl: (recipeId, url) =>
+    set((state) => ({
+      recipeImageUrls: { ...state.recipeImageUrls, [recipeId]: url },
+    })),
 
   // Pantry
   pantryItems: [],
