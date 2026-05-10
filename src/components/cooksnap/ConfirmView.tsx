@@ -23,12 +23,6 @@ const categoryColors: Record<string, string> = {
 
 const categories = ['protein', 'vegetable', 'fruit', 'dairy', 'grain', 'spice', 'condiment', 'beverage', 'other']
 
-const dietOptions = [
-  { id: 'all', label: '🍽️ All', color: 'bg-orange-100 text-orange-700' },
-  { id: 'veg', label: '🟢 Veg', color: 'bg-green-100 text-green-700' },
-  { id: 'nonveg', label: '🔴 Non-Veg', color: 'bg-red-100 text-red-700' },
-]
-
 export default function ConfirmView() {
   const {
     setCurrentView,
@@ -47,8 +41,6 @@ export default function ConfirmView() {
     setPantryItems,
     usePantryIngredients,
     setUsePantryIngredients,
-    dietFilter,
-    setDietFilter,
     scannedImage,
   } = useAppStore()
 
@@ -213,7 +205,6 @@ export default function ConfirmView() {
           ingredients: confirmedIngredients,
           cuisine: selectedCuisine,
           pantryIngredients: pantryNames,
-          dietFilter,
         }),
       })
 
@@ -442,28 +433,6 @@ export default function ConfirmView() {
           </p>
         </div>
 
-        {/* Diet Filter */}
-        <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Diet Preference
-          </h2>
-          <div className="flex gap-2">
-            {dietOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => setDietFilter(opt.id as 'all' | 'veg' | 'nonveg')}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                  dietFilter === opt.id
-                    ? `${opt.color} border-current shadow-sm`
-                    : 'bg-gray-50 text-gray-500 border-gray-200'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Cuisine Selector */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -521,7 +490,7 @@ export default function ConfirmView() {
           {isGenerating && (
             <p className="text-center text-xs text-muted-foreground mt-2">
               <ChefHat className="w-3 h-3 inline mr-1" />
-              AI chef is creating {dietFilter === 'veg' ? 'vegetarian' : dietFilter === 'nonveg' ? 'non-vegetarian' : ''} recipes...
+              AI chef is creating recipes for you...
             </p>
           )}
         </div>

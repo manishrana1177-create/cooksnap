@@ -7,6 +7,7 @@ import ConfirmView from '@/components/cooksnap/ConfirmView'
 import ResultsView from '@/components/cooksnap/ResultsView'
 import DetailView from '@/components/cooksnap/DetailView'
 import PantryView from '@/components/cooksnap/PantryView'
+import ExploreView from '@/components/cooksnap/ExploreView'
 import FavoritesView from '@/components/cooksnap/FavoritesView'
 import BottomNav from '@/components/cooksnap/BottomNav'
 
@@ -14,7 +15,7 @@ export default function Home() {
   const { currentView } = useAppStore()
 
   // Show bottom nav on these views
-  const showBottomNav = ['home', 'pantry', 'favorites'].includes(currentView)
+  const showBottomNav = ['home', 'pantry', 'explore', 'favorites'].includes(currentView)
 
   return (
     <div className="min-h-screen bg-gray-50/50 max-w-lg mx-auto relative">
@@ -24,6 +25,7 @@ export default function Home() {
       {currentView === 'results' && <ResultsView />}
       {currentView === 'detail' && <DetailView />}
       {currentView === 'pantry' && <PantryView />}
+      {currentView === 'explore' && <ExploreView />}
       {currentView === 'favorites' && <FavoritesView />}
       {showBottomNav && <BottomNav />}
     </div>

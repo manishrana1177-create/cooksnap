@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type AppView = 'home' | 'scanner' | 'confirm' | 'results' | 'detail' | 'pantry' | 'favorites'
+export type AppView = 'home' | 'scanner' | 'confirm' | 'results' | 'detail' | 'pantry' | 'explore' | 'favorites'
 
 export interface DetectedIngredient {
   name: string
@@ -66,10 +66,6 @@ interface AppState {
   // Cuisine
   selectedCuisine: string
   setSelectedCuisine: (cuisine: string) => void
-
-  // Diet filter
-  dietFilter: 'all' | 'veg' | 'nonveg'
-  setDietFilter: (filter: 'all' | 'veg' | 'nonveg') => void
 
   // Recipes
   recipes: Recipe[]
@@ -138,10 +134,6 @@ export const useAppStore = create<AppState>((set) => ({
   // Cuisine
   selectedCuisine: 'global',
   setSelectedCuisine: (cuisine) => set({ selectedCuisine: cuisine }),
-
-  // Diet filter
-  dietFilter: 'all',
-  setDietFilter: (filter) => set({ dietFilter: filter }),
 
   // Recipes
   recipes: [],

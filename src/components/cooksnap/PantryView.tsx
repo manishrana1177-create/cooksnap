@@ -1,7 +1,7 @@
 'use client'
 
 import { useAppStore, type PantryItem } from '@/lib/store'
-import { ArrowLeft, Trash2, Plus, Refrigerator } from 'lucide-react'
+import { Trash2, Plus, Refrigerator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +23,7 @@ const categoryIcons: Record<string, string> = {
 const categories = ['protein', 'vegetable', 'fruit', 'dairy', 'grain', 'spice', 'condiment', 'beverage', 'other']
 
 export default function PantryView() {
-  const { setCurrentView, pantryItems, setPantryItems } = useAppStore()
+  const { pantryItems, setPantryItems } = useAppStore()
   const [newItem, setNewItem] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('other')
   const [isLoading, setIsLoading] = useState(true)
@@ -93,18 +93,11 @@ export default function PantryView() {
   }, {})
 
   return (
-    <div className="view-transition min-h-screen flex flex-col">
+    <div className="view-transition min-h-screen flex flex-col bg-gray-50/50 pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentView('home')}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
             <div>
               <h1 className="text-lg font-semibold">My Pantry</h1>
               <p className="text-xs text-muted-foreground">{pantryItems.length} items saved</p>

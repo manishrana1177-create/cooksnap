@@ -4,11 +4,10 @@ import ZAI from 'z-ai-web-dev-sdk'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { ingredients, cuisine, pantryIngredients, dietFilter } = body as {
+    const { ingredients, cuisine, pantryIngredients } = body as {
       ingredients: string[]
       cuisine: string
       pantryIngredients?: string[]
-      dietFilter?: string // 'all' | 'veg' | 'nonveg'
     }
 
     if (!ingredients || ingredients.length === 0) {
@@ -26,19 +25,13 @@ export async function POST(request: NextRequest) {
       ? `in ${cuisine} cuisine style`
       : 'in any global cuisine style'
 
-    const dietContext = dietFilter === 'veg'
-      ? 'IMPORTANT: All recipes MUST be vegetarian (no meat, fish, or eggs). Include paneer, tofu, lentils, and vegetable-based dishes.'
-      : dietFilter === 'nonveg'
-      ? 'IMPORTANT: All recipes MUST be non-vegetarian (include at least one type of meat or fish).'
-      : 'Include a mix of vegetarian and non-vegetarian recipes.'
-
     const zai = await ZAI.create()
 
     const completion = await zai.chat.completions.create({
       messages: [
         {
           role: 'system',
-          content: `You are a creative chef AI that generates recipes based on available ingredients. Generate 5-6 delicious recipes using the provided ingredients ${cuisineContext}. ${dietContext}
+          content: `You are a creative chef AI that generates recipes based on available ingredients. Generate 5-6 delicious recipes using the provided ingredients ${cuisineContext}. Include a mix of vegetarian and non-vegetarian recipes.
 
 Return ONLY a valid JSON array of recipe objects with this exact format, no other text, no markdown:
 [{
@@ -68,7 +61,7 @@ Rules:
         },
         {
           role: 'user',
-          content: `I have these ingredients available: ${allIngredients.join(', ')}. Please generate recipes ${cuisineContext}. ${dietContext}`
+          content: `I have these ingredients available: ${allIngredients.join(', ')}. Please generate recipes ${cuisineContext}.`
         }
       ],
     })

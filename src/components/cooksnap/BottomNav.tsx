@@ -1,21 +1,20 @@
 'use client'
 
 import { useAppStore, type AppView } from '@/lib/store'
-import { Home, Search, Camera, Heart, User } from 'lucide-react'
+import { Home, Compass, Camera, Heart, Refrigerator } from 'lucide-react'
 
 const navItems: { id: AppView; icon: typeof Home; label: string }[] = [
   { id: 'home', icon: Home, label: 'Home' },
-  { id: 'pantry', icon: Search, label: 'Explore' },
+  { id: 'explore', icon: Compass, label: 'Explore' },
   { id: 'scanner', icon: Camera, label: 'Scan' },
+  { id: 'pantry', icon: Refrigerator, label: 'Pantry' },
   { id: 'favorites', icon: Heart, label: 'Saved' },
-  { id: 'home', icon: User, label: 'Profile' },
 ]
 
 export default function BottomNav() {
   const { currentView, setCurrentView } = useAppStore()
 
   const isActive = (id: AppView) => {
-    if (id === 'home') return currentView === 'home'
     return currentView === id
   }
 
@@ -24,7 +23,7 @@ export default function BottomNav() {
       <div className="flex items-end justify-around px-2 pt-1 pb-2">
         {navItems.map((item, index) => {
           const isScan = index === 2
-          const active = isActive(item.id) && !(index === 4 && currentView !== 'home')
+          const active = isActive(item.id)
 
           if (isScan) {
             return (

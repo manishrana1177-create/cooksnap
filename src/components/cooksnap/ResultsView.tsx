@@ -32,7 +32,6 @@ const cuisineList = [
 export default function ResultsView() {
   const { setCurrentView, recipes, setSelectedRecipe, favorites, setFavorites, recipeImageUrls, setRecipeImageUrl } = useAppStore()
   const [sharing, setSharing] = useState<string | null>(null)
-  const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'nonveg'>('all')
   const [cuisineFilter, setCuisineFilter] = useState('all')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -133,8 +132,6 @@ export default function ResultsView() {
 
   // Apply filters
   const filteredRecipes = recipes.filter((recipe) => {
-    if (dietFilter === 'veg' && !recipe.isVegetarian) return false
-    if (dietFilter === 'nonveg' && recipe.isVegetarian) return false
     if (cuisineFilter !== 'all' && recipe.cuisine?.toLowerCase() !== cuisineFilter.toLowerCase()) return false
     return true
   })
@@ -178,43 +175,6 @@ export default function ResultsView() {
         {/* Filter Bar */}
         {showFilters && (
           <div className="px-4 pb-3 space-y-3 border-t pt-3 bg-orange-50/30">
-            {/* Diet Filter */}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1.5">DIET</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDietFilter('all')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    dietFilter === 'all'
-                      ? 'bg-orange-500 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
-                >
-                  🍽️ All
-                </button>
-                <button
-                  onClick={() => setDietFilter('veg')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    dietFilter === 'veg'
-                      ? 'bg-green-500 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
-                >
-                  <Leaf className="w-3 h-3 inline mr-0.5" /> Veg Only
-                </button>
-                <button
-                  onClick={() => setDietFilter('nonveg')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    dietFilter === 'nonveg'
-                      ? 'bg-red-500 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
-                >
-                  <Drumstick className="w-3 h-3 inline mr-0.5" /> Non-Veg Only
-                </button>
-              </div>
-            </div>
-
             {/* Cuisine Filter */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">CUISINE</p>
@@ -369,10 +329,10 @@ export default function ResultsView() {
             <span className="text-6xl mb-4">🔍</span>
             <h2 className="text-xl font-semibold mb-2">No recipes match filters</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              Try changing your diet or cuisine filter
+              Try changing your cuisine filter
             </p>
             <Button
-              onClick={() => { setDietFilter('all'); setCuisineFilter('all') }}
+              onClick={() => setCuisineFilter('all')}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Clear Filters

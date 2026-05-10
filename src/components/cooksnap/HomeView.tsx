@@ -18,6 +18,7 @@ import {
   ShoppingCart,
   ArrowRight,
   Heart,
+  Compass,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -29,8 +30,8 @@ const quickActions = [
   { id: 'scan', icon: Camera, label: 'Scan Fridge', color: 'bg-orange-100 text-orange-600', action: 'scanner' as const },
   { id: 'type', icon: Sparkles, label: 'Type Ingredients', color: 'bg-amber-100 text-amber-600', action: 'confirm' as const },
   { id: 'pantry', icon: Refrigerator, label: 'My Pantry', color: 'bg-green-100 text-green-600', action: 'pantry' as const },
+  { id: 'explore', icon: Compass, label: 'Explore', color: 'bg-blue-100 text-blue-600', action: 'explore' as const },
   { id: 'fav', icon: Heart, label: 'Favorites', color: 'bg-red-100 text-red-500', action: 'favorites' as const },
-  { id: 'veg', icon: Leaf, label: 'Veg Recipes', color: 'bg-emerald-100 text-emerald-600', action: 'confirm' as const },
 ]
 
 const smartTips = [
@@ -233,6 +234,7 @@ export default function HomeView() {
             {[
               { label: 'Home', icon: '🏠', view: 'home' as const },
               { label: 'Scan Fridge', icon: '📸', view: 'scanner' as const },
+              { label: 'Explore', icon: '🧭', view: 'explore' as const },
               { label: 'My Pantry', icon: '🧺', view: 'pantry' as const },
               { label: 'Favorites', icon: '❤️', view: 'favorites' as const },
             ].map((item) => (
@@ -309,7 +311,7 @@ export default function HomeView() {
         <div className="flex items-center justify-between px-4 mb-3">
           <h2 className="text-sm font-bold text-gray-800">AI Recipe Suggestions</h2>
           <button
-            onClick={() => setCurrentView('favorites')}
+            onClick={() => setCurrentView('explore')}
             className="text-[11px] font-semibold text-orange-500 flex items-center gap-0.5 hover:gap-1.5 transition-all"
           >
             See all <ArrowRight className="w-3 h-3" />
@@ -438,7 +440,7 @@ export default function HomeView() {
           {[
             { step: '1', emoji: '📸', title: 'Snap Your Fridge', desc: 'Take a photo of your fridge or pantry contents' },
             { step: '2', emoji: '🤖', title: 'AI Identifies Ingredients', desc: 'Our AI recognizes what food items you have (Hinglish supported!)' },
-            { step: '3', emoji: '🍳', title: 'Get Instant Recipes', desc: 'Personalized recipes with real images & veg/non-veg filters' },
+            { step: '3', emoji: '🍳', title: 'Get Instant Recipes', desc: 'Personalized recipes with real images based on your ingredients' },
             { step: '4', emoji: '👨‍🍳', title: 'Cook & Enjoy', desc: 'Follow step-by-step instructions and enjoy your meal' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">

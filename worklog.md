@@ -42,3 +42,31 @@ Stage Summary:
 - Added full recipe data for 3 sample recipes (Paneer Butter Masala, Chicken Tikka, Pasta Primavera)
 - Back button in DetailView now returns to the previous view (home, results, or favorites)
 - Build compiles successfully
+
+---
+Task ID: 2
+Agent: main
+Task: Separate Pantry and Explore sections, make Explore show recipes from pantry ingredients, remove diet preference
+
+Work Log:
+- Added 'explore' to AppView type in store
+- Removed dietFilter and setDietFilter from Zustand store entirely
+- Created new ExploreView component that auto-generates recipes based on pantry ingredients
+- Updated BottomNav: Home | Explore | Scan | Pantry | Saved (5 tabs with Compass icon for Explore)
+- Updated page.tsx to include ExploreView and show bottom nav for 'explore' view
+- Removed diet preference section from ConfirmView (dietOptions constant, diet filter UI, dietFilter from API call)
+- Removed diet filter from ResultsView (state, filter logic, UI section in filter bar)
+- Removed dietFilter from recipe generation API route
+- Updated HomeView quick actions: replaced "Veg Recipes" with "Explore" button
+- Updated HomeView dropdown menu to include Explore
+- Changed "See all" link on AI Recipe Suggestions from favorites to explore
+- Updated PantryView: removed back arrow (now a tab with bottom nav), added bottom padding for nav
+- Updated "How It Works" text to remove veg/non-veg filter reference
+- ExploreView shows sample recipes when pantry is empty, auto-generates from pantry items when available
+- ExploreView has Refresh button, pantry ingredient summary bar, and AI image generation
+
+Stage Summary:
+- Pantry and Explore are now completely separate sections in the bottom nav
+- Explore automatically generates recipe suggestions from pantry ingredients
+- Diet preference (veg/non-veg filter) removed from all views, store, and API
+- Build compiles successfully
