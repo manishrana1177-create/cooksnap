@@ -476,18 +476,17 @@ export default function ConfirmView() {
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {[
-              { id: 'global', label: '🌍 Global' },
-              { id: 'indian', label: '🇮🇳 Indian' },
-              { id: 'italian', label: '🇮🇹 Italian' },
-              { id: 'chinese', label: '🇨🇳 Chinese' },
-              { id: 'mexican', label: '🇲🇽 Mexican' },
-              { id: 'japanese', label: '🇯🇵 Japanese' },
-              { id: 'thai', label: '🇹🇭 Thai' },
-              { id: 'mediterranean', label: '🫒 Mediterranean' },
-              { id: 'american', label: '🇺🇸 American' },
-              { id: 'korean', label: '🇰🇷 Korean' },
-              { id: 'french', label: '🇫🇷 French' },
-              { id: 'middle-eastern', label: '🧆 Middle Eastern' },
+              { id: 'global', label: '🍽️ All' },
+              { id: 'North Indian', label: '🫓 North Indian' },
+              { id: 'South Indian', label: '🥘 South Indian' },
+              { id: 'East Indian', label: '🍲 East Indian' },
+              { id: 'West Indian', label: '🥗 West Indian' },
+              { id: 'Indo-Chinese', label: '🥡 Indo-Chinese' },
+              { id: 'Street Food', label: '🌮 Street Food' },
+              { id: 'Fast Food & Cafe', label: '🍔 Fast Food & Cafe' },
+              { id: 'Healthy & Fitness', label: '🥗 Healthy & Fitness' },
+              { id: 'Vegetarian', label: '🌿 Vegetarian' },
+              { id: 'Non-Vegetarian', label: '🍗 Non-Vegetarian' },
             ].map((c) => (
               <button
                 key={c.id}

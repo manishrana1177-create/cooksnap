@@ -1,12 +1,26 @@
 'use client'
 
 import { useAppStore, type Recipe } from '@/lib/store'
-import { Clock, Users, Flame, Leaf, Drumstick, Compass, Sparkles, ChefHat, RefreshCw, Search, ShoppingCart } from 'lucide-react'
+import { Clock, Users, Flame, Leaf, Drumstick, Compass, Sparkles, ChefHat, RefreshCw, Search, ShoppingCart, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
+
+const CUISINES = [
+  { id: 'all', label: '🍽️ All', emoji: '🍽️' },
+  { id: 'North Indian', label: '🫓 North Indian', emoji: '🫓' },
+  { id: 'South Indian', label: '🥘 South Indian', emoji: '🥘' },
+  { id: 'East Indian', label: '🍲 East Indian', emoji: '🍲' },
+  { id: 'West Indian', label: '🥗 West Indian', emoji: '🥗' },
+  { id: 'Indo-Chinese', label: '🥡 Indo-Chinese', emoji: '🥡' },
+  { id: 'Street Food', label: '🌮 Street Food', emoji: '🌮' },
+  { id: 'Fast Food & Cafe', label: '🍔 Fast Food', emoji: '🍔' },
+  { id: 'Healthy & Fitness', label: '💪 Healthy', emoji: '💪' },
+  { id: 'Vegetarian', label: '🌿 Veg', emoji: '🌿' },
+  { id: 'Non-Vegetarian', label: '🍗 Non-Veg', emoji: '🍗' },
+]
 
 export default function ExploreView() {
   const {
@@ -20,8 +34,11 @@ export default function ExploreView() {
 
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedCuisine, setSelectedCuisine] = useState('all')
   const [matchInfo, setMatchInfo] = useState<{ source: string; matchedCount: number } | null>(null)
+  const [cuisineCounts, setCuisineCounts] = useState<Record<string, number>>({})
   const hasLoaded = useRef(false)
+  const abortRef = useRef<AbortController | null>(null)
 
   // Load pantry items on mount
   useEffect(() => {
@@ -39,19 +56,55 @@ export default function ExploreView() {
     loadPantry()
   }, [setPantryItems])
 
-  // Search recipes from database whenever pantry changes
+  // Fetch cuisine counts for badges
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await fetch('/api/seed/recipes')
+        if (res.ok) {
+          const data = await res.json()
+          const counts: Record<string, number> = {}
+          if (data.byCuisine) {
+            data.byCuisine.forEach((c: { cuisine: string; count: number }) => {
+              counts[c.cuisine] = c.count
+            })
+          }
+          setCuisineCounts(counts)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    fetchCounts()
+  }, [recipes])
+
+  // Search recipes from database whenever pantry or cuisine changes
   useEffect(() => {
     if (hasLoaded.current) return
     hasLoaded.current = true
     searchRecipes()
   }, [pantryItems])
 
-  const searchRecipes = async () => {
+  // Re-search when cuisine changes
+  useEffect(() => {
+    if (hasLoaded.current) {
+      searchRecipes()
+    }
+  }, [selectedCuisine])
+
+  const searchRecipes = useCallback(async () => {
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      abortRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setIsLoading(true)
     try {
       const ingredientNames = pantryItems.map((p) => p.name)
+      const cuisineFilter = selectedCuisine !== 'all' ? selectedCuisine : undefined
 
-      const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
       const response = await fetch('/api/recipes/search', {
@@ -59,7 +112,8 @@ export default function ExploreView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ingredients: ingredientNames,
-          limit: 20,
+          cuisine: cuisineFilter,
+          limit: 30,
         }),
         signal: controller.signal,
       })
@@ -78,24 +132,27 @@ export default function ExploreView() {
         setRecipes([])
         setMatchInfo(null)
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') return // cancelled, ignore
       console.error(error)
       setRecipes([])
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [pantryItems, selectedCuisine])
 
-  // Refresh - re-search with current pantry
+  // Refresh - re-search with current pantry & cuisine
   const handleRefresh = () => {
-    hasLoaded.current = false
     searchRecipes()
-    hasLoaded.current = true
   }
 
   const openRecipe = (recipe: Recipe) => {
     setSelectedRecipe(recipe)
     setCurrentView('detail')
+  }
+
+  const handleCuisineChange = (cuisineId: string) => {
+    setSelectedCuisine(cuisineId)
   }
 
   // Generate images for recipes
@@ -142,7 +199,7 @@ export default function ExploreView() {
               <p className="text-[10px] text-gray-400">
                 {pantryItems.length > 0
                   ? `Based on your ${pantryItems.length} pantry items`
-                  : 'Discover delicious recipes'}
+                  : 'Discover delicious Indian recipes'}
               </p>
             </div>
           </div>
@@ -156,6 +213,26 @@ export default function ExploreView() {
             <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+        </div>
+
+        {/* Cuisine filter tabs */}
+        <div className="px-4 pb-2 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          {CUISINES.map((cuisine) => (
+            <button
+              key={cuisine.id}
+              onClick={() => handleCuisineChange(cuisine.id)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                selectedCuisine === cuisine.id
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'bg-gray-50 text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600'
+              }`}
+            >
+              {cuisine.label}
+              {cuisineCounts[cuisine.id] && selectedCuisine !== cuisine.id && (
+                <span className="ml-1 text-[10px] opacity-60">({cuisineCounts[cuisine.id]})</span>
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Pantry summary bar */}
@@ -188,7 +265,9 @@ export default function ExploreView() {
               <ChefHat className="w-8 h-8 text-orange-500 animate-pulse" />
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-1">Finding recipes for you...</h3>
-            <p className="text-sm text-gray-400 mb-4">Searching our recipe database</p>
+            <p className="text-sm text-gray-400 mb-4">
+              {selectedCuisine !== 'all' ? `Searching ${selectedCuisine} recipes` : 'Searching our recipe database'}
+            </p>
             <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
@@ -222,7 +301,7 @@ export default function ExploreView() {
             <Sparkles className="w-3 h-3 text-orange-500" />
             {matchInfo.source === 'matched' && `Found ${matchInfo.matchedCount} recipes matching your ingredients`}
             {matchInfo.source === 'mixed' && `Some matches found + popular recipes`}
-            {matchInfo.source === 'popular' && `Popular recipes — add more pantry items for better matches`}
+            {matchInfo.source === 'popular' && `Popular ${selectedCuisine !== 'all' ? selectedCuisine : ''} recipes — add more pantry items for better matches`}
           </div>
         )}
 
@@ -342,13 +421,24 @@ export default function ExploreView() {
         ))}
 
         {/* No recipes found */}
-        {!isLoading && recipes.length === 0 && pantryItems.length > 0 && (
+        {!isLoading && recipes.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <span className="text-6xl mb-4">🍽️</span>
-            <h2 className="text-xl font-semibold mb-2">No matching recipes yet</h2>
+            <h2 className="text-xl font-semibold mb-2">No recipes found</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              Try adding more ingredients or check back when we have more recipes
+              {selectedCuisine !== 'all'
+                ? `No ${selectedCuisine} recipes match your ingredients yet. Try a different cuisine or add more pantry items.`
+                : 'Try adding more ingredients or check back when we have more recipes'}
             </p>
+            {selectedCuisine !== 'all' && (
+              <Button
+                variant="outline"
+                className="border-orange-200 text-orange-600"
+                onClick={() => setSelectedCuisine('all')}
+              >
+                View All Cuisines
+              </Button>
+            )}
           </div>
         )}
 
