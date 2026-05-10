@@ -26,6 +26,7 @@ import { toast } from '@/hooks/use-toast'
 export default function DetailView() {
   const {
     setCurrentView,
+    previousView,
     selectedRecipe,
     cookingStep,
     setCookingStep,
@@ -119,7 +120,7 @@ export default function DetailView() {
     return (
       <div className="view-transition min-h-screen flex items-center justify-center">
         <p>No recipe selected</p>
-        <Button onClick={() => setCurrentView('results')} className="ml-2">
+        <Button onClick={() => setCurrentView(previousView === 'detail' ? 'home' : previousView)} className="ml-2">
           Go Back
         </Button>
       </div>
@@ -141,7 +142,7 @@ export default function DetailView() {
                 setCookingMode(false)
                 setCookingStep(0)
               } else {
-                setCurrentView('results')
+                setCurrentView(previousView === 'detail' ? 'home' : previousView)
               }
             }}
           >

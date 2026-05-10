@@ -51,6 +51,7 @@ export interface FavoriteRecipe {
 interface AppState {
   // Navigation
   currentView: AppView
+  previousView: AppView
   setCurrentView: (view: AppView) => void
 
   // Scanner
@@ -108,7 +109,8 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   // Navigation
   currentView: 'home',
-  setCurrentView: (view) => set({ currentView: view }),
+  previousView: 'home',
+  setCurrentView: (view) => set((state) => ({ previousView: state.currentView, currentView: view })),
 
   // Scanner
   scannedImage: null,

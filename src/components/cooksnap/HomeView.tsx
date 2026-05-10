@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppStore } from '@/lib/store'
+import { useAppStore, type Recipe } from '@/lib/store'
 import {
   Camera,
   ChefHat,
@@ -48,42 +48,117 @@ const smartTips = [
   },
 ]
 
-const sampleRecipes = [
+const sampleRecipes: Recipe[] = [
   {
     id: 'sample-1',
     title: 'Paneer Butter Masala',
     cuisine: 'Indian',
-    time: '30 min',
+    cookTime: '20 min',
+    prepTime: '10 min',
+    servings: 4,
     difficulty: 'Easy',
-    isVeg: true,
-    match: true,
-    image: '/recipe-images/paneer-butter-masala.png',
+    isVegetarian: true,
+    ingredients: [
+      '250g paneer, cubed',
+      '2 tbsp butter',
+      '1 tbsp oil',
+      '1 onion, finely chopped',
+      '2 tomatoes, pureed',
+      '1 tbsp ginger-garlic paste',
+      '1 tsp red chilli powder',
+      '1 tsp garam masala',
+      '1/2 tsp turmeric',
+      '1/2 cup cream',
+      '1 tsp kasuri methi',
+      'Salt to taste',
+      'Fresh coriander for garnish',
+    ],
+    steps: [
+      'Heat butter and oil in a pan. Add chopped onions and sauté until golden brown.',
+      'Add ginger-garlic paste and cook for 1-2 minutes until the raw smell disappears.',
+      'Add tomato puree, red chilli powder, turmeric, and salt. Cook until oil separates from the masala.',
+      'Add garam masala and kasuri methi. Mix well and cook for another minute.',
+      'Add paneer cubes and gently stir to coat with the masala. Simmer for 5 minutes on low heat.',
+      'Pour in the cream, stir gently, and let it simmer for 2-3 minutes. Do not boil after adding cream.',
+      'Garnish with fresh coriander and a swirl of cream. Serve hot with naan or jeera rice.',
+    ],
+    tags: ['Rich & Creamy', 'North Indian', 'Restaurant Style', 'Paneer'],
+    imagePrompt: 'creamy orange paneer butter masala in a bowl with naan bread',
   },
   {
     id: 'sample-2',
     title: 'Chicken Tikka',
     cuisine: 'Indian',
-    time: '45 min',
+    cookTime: '25 min',
+    prepTime: '20 min',
+    servings: 4,
     difficulty: 'Medium',
-    isVeg: false,
-    match: false,
-    image: '/recipe-images/chicken-tikka.png',
+    isVegetarian: false,
+    ingredients: [
+      '500g boneless chicken, cubed',
+      '1 cup thick yogurt',
+      '2 tbsp tikka masala powder',
+      '1 tbsp ginger-garlic paste',
+      '1 tbsp lemon juice',
+      '1 tsp red chilli powder',
+      '1/2 tsp turmeric',
+      '1 tbsp mustard oil',
+      '1 tsp chaat masala',
+      'Salt to taste',
+      'Onion rings and lemon wedges for serving',
+    ],
+    steps: [
+      'In a large bowl, mix yogurt, tikka masala, ginger-garlic paste, lemon juice, red chilli powder, turmeric, mustard oil, and salt to make the marinade.',
+      'Add chicken cubes to the marinade, coat well, and refrigerate for at least 30 minutes (overnight is best).',
+      'Preheat oven to 220°C (425°F). Thread chicken onto skewers, leaving small gaps between pieces.',
+      'Place skewers on a baking tray lined with foil. Brush with a little oil and bake for 15-18 minutes.',
+      'Turn the skewers halfway through cooking and baste with leftover marinade for extra flavor.',
+      'For a charred finish, broil for 2-3 minutes at the end. Sprinkle chaat masala on top.',
+      'Serve hot with onion rings, lemon wedges, and mint chutney.',
+    ],
+    tags: ['Tandoori', 'High Protein', 'Grilled', 'Party Starter'],
+    imagePrompt: 'smoky charred chicken tikka pieces on skewers with mint chutney',
   },
   {
     id: 'sample-3',
     title: 'Pasta Primavera',
     cuisine: 'Italian',
-    time: '25 min',
+    cookTime: '15 min',
+    prepTime: '10 min',
+    servings: 3,
     difficulty: 'Easy',
-    isVeg: true,
-    match: false,
-    image: '/recipe-images/pasta-primavera.png',
+    isVegetarian: true,
+    ingredients: [
+      '250g penne pasta',
+      '1 zucchini, diced',
+      '1 bell pepper, diced',
+      '1 cup cherry tomatoes, halved',
+      '1/2 cup peas',
+      '3 cloves garlic, minced',
+      '2 tbsp olive oil',
+      '1/2 cup parmesan cheese, grated',
+      '1/4 cup fresh basil leaves',
+      'Salt and black pepper to taste',
+      'Red chilli flakes (optional)',
+    ],
+    steps: [
+      'Cook pasta in salted boiling water until al dente. Reserve 1/2 cup pasta water before draining.',
+      'Heat olive oil in a large pan over medium heat. Add minced garlic and sauté for 30 seconds until fragrant.',
+      'Add diced zucchini and bell pepper. Sauté for 3-4 minutes until slightly tender but still crisp.',
+      'Add cherry tomatoes and peas. Cook for 2 minutes, stirring gently.',
+      'Toss in the cooked pasta along with reserved pasta water. Stir to combine everything well.',
+      'Season with salt, black pepper, and chilli flakes if using. Add half the parmesan and toss.',
+      'Plate the pasta, top with remaining parmesan and fresh basil leaves. Drizzle with olive oil and serve.',
+    ],
+    tags: ['Quick & Easy', 'Vegetable Packed', 'Weeknight Dinner', 'Light'],
+    imagePrompt: 'colorful pasta primavera with fresh vegetables and parmesan cheese',
   },
 ]
 
 export default function HomeView() {
   const {
     setCurrentView,
+    setSelectedRecipe,
     pantryItems,
     favorites,
     recipeImageUrls,
@@ -91,18 +166,35 @@ export default function HomeView() {
 
   const [showMenu, setShowMenu] = useState(false)
 
-  const recipesToShow = favorites.length > 0
+  // Build the list of recipes to show on home page
+  const recipesToShow: { recipe: Recipe; image: string | null }[] = favorites.length > 0
     ? favorites.slice(0, 3).map((f) => ({
-        id: f.id,
-        title: f.title,
-        cuisine: f.cuisine,
-        time: f.prepTime,
-        difficulty: f.difficulty,
-        isVeg: f.isVegetarian ?? true,
-        match: false,
+        recipe: {
+          id: f.id,
+          title: f.title,
+          cuisine: f.cuisine,
+          cookTime: f.cookTime,
+          prepTime: f.prepTime,
+          servings: f.servings,
+          difficulty: f.difficulty,
+          isVegetarian: f.isVegetarian ?? true,
+          ingredients: Array.isArray(f.ingredients) ? f.ingredients : [],
+          steps: Array.isArray(f.steps) ? f.steps : [],
+          tags: Array.isArray(f.tags) ? f.tags : [],
+          imagePrompt: f.imagePrompt,
+          imageUrl: f.imageUrl,
+        },
         image: recipeImageUrls[f.id] || null,
       }))
-    : sampleRecipes
+    : sampleRecipes.map((r, i) => ({
+        recipe: r,
+        image: [`/recipe-images/paneer-butter-masala.png`, `/recipe-images/chicken-tikka.png`, `/recipe-images/pasta-primavera.png`][i] || null,
+      }))
+
+  const openRecipe = (recipe: Recipe) => {
+    setSelectedRecipe(recipe)
+    setCurrentView('detail')
+  }
 
   return (
     <div className="view-transition min-h-screen flex flex-col bg-gray-50/50 pb-24">
@@ -225,17 +317,17 @@ export default function HomeView() {
         </div>
 
         <div className="flex gap-3 overflow-x-auto px-4 pb-1" style={{ scrollbarWidth: 'none' }}>
-          {recipesToShow.map((recipe, index) => (
+          {recipesToShow.map(({ recipe, image }, index) => (
             <Card
               key={recipe.id}
               className="flex-shrink-0 w-[160px] overflow-hidden border-0 shadow-md hover:shadow-lg transition-all active:scale-[0.97] cursor-pointer bg-white"
-              onClick={() => setCurrentView('confirm')}
+              onClick={() => openRecipe(recipe)}
             >
               {/* Image area */}
               <div className="h-[110px] relative overflow-hidden">
-                {recipe.image ? (
+                {image ? (
                   <img
-                    src={recipe.image}
+                    src={image}
                     alt={recipe.title}
                     className="w-full h-full object-cover"
                   />
@@ -245,21 +337,14 @@ export default function HomeView() {
                   </div>
                 )}
 
-                {/* Best Match badge */}
-                {recipe.match && (
-                  <Badge className="absolute top-2 left-2 bg-orange-500 text-white text-[9px] px-1.5 py-0.5 font-bold">
-                    Best Match
-                  </Badge>
-                )}
-
                 {/* Veg/Non-veg indicator */}
                 <div className="absolute top-2 right-2">
                   <div
                     className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      recipe.isVeg ? 'bg-green-500' : 'bg-red-500'
+                      recipe.isVegetarian ? 'bg-green-500' : 'bg-red-500'
                     }`}
                   >
-                    {recipe.isVeg ? (
+                    {recipe.isVegetarian ? (
                       <Leaf className="w-3 h-3 text-white" />
                     ) : (
                       <Drumstick className="w-3 h-3 text-white" />
@@ -284,7 +369,7 @@ export default function HomeView() {
                 <div className="flex items-center gap-2 text-[9px] text-gray-400">
                   <div className="flex items-center gap-0.5">
                     <Clock className="w-2.5 h-2.5" />
-                    <span>{recipe.time}</span>
+                    <span>{recipe.prepTime}</span>
                   </div>
                   <div className="flex items-center gap-0.5">
                     <Flame className="w-2.5 h-2.5" />

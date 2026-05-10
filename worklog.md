@@ -22,3 +22,23 @@ Stage Summary:
 - Warm orange color scheme maintained throughout
 - New files: BottomNav.tsx, fridge-hero.png
 - Modified files: HomeView.tsx (full rewrite), page.tsx, globals.css
+
+---
+Task ID: 1
+Agent: main
+Task: Fix AI Suggested Recipes navigation - clicking should show recipe detail page instead of going to explore/confirm
+
+Work Log:
+- Diagnosed the issue: HomeView.tsx line 232 had `onClick={() => setCurrentView('confirm')}` on recipe cards, sending users to ingredient confirmation page instead of recipe detail
+- Sample recipes only had partial data (no ingredients, steps, tags) - they couldn't populate the DetailView
+- Added `previousView` field to Zustand store to track navigation origin
+- Updated DetailView back button to use `previousView` instead of hardcoded `'results'`
+- Replaced partial sample recipes with full Recipe objects containing ingredients, steps, tags, and image prompts
+- Updated HomeView recipesToShow logic to work with Recipe type and support both favorites and sample recipes
+- Changed recipe card onClick to `openRecipe(recipe)` which calls `setSelectedRecipe(recipe)` then `setCurrentView('detail')`
+
+Stage Summary:
+- Fixed navigation: clicking AI Suggested recipe cards now opens the recipe detail page
+- Added full recipe data for 3 sample recipes (Paneer Butter Masala, Chicken Tikka, Pasta Primavera)
+- Back button in DetailView now returns to the previous view (home, results, or favorites)
+- Build compiles successfully
