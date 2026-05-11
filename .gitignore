@@ -52,3 +52,32 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Android build outputs
+android/app/build/
+android/build/
+android/.gradle/
+
+# Database
+db/*.db
+db/*.db-journal
+
+# Downloaded files
+/download/
+
+# Keystore files (keep secrets out of git)
+*.jks
+*.keystore
+
+# Seed artifacts
+seed-*.log
+seed-*.json
+
+# Android SDK
+/home/z/android-sdk/
+
+# JDK
+/home/z/jdk-*
+
+# Worklog
+worklog.md
