@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert image to buffer and save to disk
+    // Convert image to buffer and save to disk temporarily for CLI processing
     const bytes = await imageFile.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const ext = imageFile.type?.split('/')[1] || 'jpg'
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       ingredients = []
     }
 
-    // Clean up files
+    // Clean up temp files
     try { if (filePath && existsSync(filePath)) unlinkSync(filePath) } catch { /* ignore */ }
     try { if (outputPath && existsSync(outputPath)) unlinkSync(outputPath) } catch { /* ignore */ }
 
